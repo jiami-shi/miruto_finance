@@ -130,6 +130,51 @@ Create an action:
 
 Use the action as the user-facing evidence button. The raw URL can be shown in detail during PoC, but the button is easier for approvers.
 
+## Google Drive Evidence Preview
+
+If the evidence is a Google Drive file URL like:
+
+```text
+https://drive.google.com/file/d/1xgjbsBLPqospES_14V3GrkXJq0yj3obL/view?usp=sharing
+```
+
+AppSheet can show a better inline preview than it can for external services such as freee or Bakuraku.
+
+### Recommended PoC setup
+
+Add a virtual column on `db_payments`:
+
+| setting | value |
+| --- | --- |
+| Column name | `evidence_preview_url` |
+| Type | `URL` |
+| App formula | see below |
+| Show | on |
+| Editable | off |
+| Display name | `証憑プレビュー` |
+
+Formula:
+
+```appsheet
+IF(
+  CONTAINS([evidence_url], "drive.google.com/file/d/"),
+  SUBSTITUTE(
+    SUBSTITUTE([evidence_url], "/view?usp=sharing", "/preview"),
+    "/view?usp=drive_link",
+    "/preview"
+  ),
+  ""
+)
+```
+
+Add `evidence_preview_url` near `evidence_url` in the payment detail view.
+
+### Preview caveat
+
+Google Drive files must be accessible to the AppSheet user. If Drive permissions block the current user, the preview/link will fail even when the URL format is correct.
+
+For non-Google-Drive evidence URLs, keep using the `証憑を開く` action instead of expecting inline preview.
+
 ## Amount Display
 
 For amount columns:
@@ -190,4 +235,3 @@ Expected detail page:
 - `証憑を開く` button appears
 - raw technical IDs are not the first thing shown
 - action comment is visible near the bottom
-
