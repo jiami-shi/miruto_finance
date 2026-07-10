@@ -2,7 +2,9 @@
 
 ## Current State
 
-The repository contains the initial PRD and project operating rules for the finance workflow project.
+Milestone 1 PoC design is complete.
+
+The repository contains the PRD, system design, AppSheet setup guide, Apps Script implementation plan, test plan, project operating rules, and initial ADRs.
 
 The confirmed direction is:
 
@@ -13,6 +15,23 @@ The confirmed direction is:
 - AppSheet is the approval UI
 - Apps Script is backend job processing
 - existing monthly CSV flow remains during PoC
+- source spreadsheet headers have been inspected for the first design pass
+
+## Source Spreadsheet
+
+The inspected source spreadsheet is:
+
+- title: `EC_FY2026_予算管理シート`
+- id: `1Wan-sIlRIgqO98wVnNj0L_KBRpwwakGFSpYr_w5OFqk`
+
+Relevant tabs:
+
+- `HD取得予算管理リスト`
+- `事業部個別予算申請管理リスト`
+- `事業部定常予算申請管理リスト`
+- `imp_支払い管理リスト`
+- `Up_支払月報`
+- `agg_暫定DB`
 
 ## Confirmed Roles
 
@@ -34,15 +53,14 @@ The confirmed direction is:
 
 ## Next Actions
 
-1. Inspect the real budget management spreadsheet headers.
-2. Draft `DESIGN.md`.
-3. Define the first `db_*` sheet schemas.
-4. Define AppSheet tables, slices, views, actions, and security filters.
-5. Define Apps Script backend structure.
+1. Create the PoC database spreadsheet with `db_*` tabs.
+2. Seed `db_users` and `db_approval_rules`.
+3. Implement Apps Script schema and repository helpers.
+4. Import 20-30 rows from `imp_支払い管理リスト`.
+5. Configure AppSheet tables, slices, actions, and security filters.
 
 ## Open Questions
 
-- Exact column mapping from the current budget management spreadsheet.
 - Slack channel or user group strategy.
 - Return/resubmit detection rule from existing source sheets.
 - Final monthly CSV field set.
@@ -50,4 +68,3 @@ The confirmed direction is:
 ## Update Rule
 
 Update this file at the end of every milestone and whenever a major assumption changes.
-

@@ -13,7 +13,7 @@ Deliverables:
 
 ## Milestone 1: PoC Design
 
-Status: next
+Status: done
 
 Goal:
 
@@ -30,16 +30,16 @@ Scope:
 
 Exit criteria:
 
-- `DESIGN.md` exists
-- `appsheet/SETUP.md` exists
-- `apps-script/IMPLEMENTATION_PLAN.md` exists
-- `TEST_PLAN.md` exists
-- ADRs are updated if any decision changes
-- `HANDOFF.md` reflects the latest state
+- `DESIGN.md` exists: done
+- `appsheet/SETUP.md` exists: done
+- `apps-script/IMPLEMENTATION_PLAN.md` exists: done
+- `TEST_PLAN.md` exists: done
+- ADRs are updated if any decision changes: no decision change
+- `HANDOFF.md` reflects the latest state: done
 
 ## Milestone 2: PoC Build
 
-Status: pending
+Status: next
 
 Goal:
 
@@ -70,4 +70,3 @@ Status: pending
 Goal:
 
 Run with a small group of real users and stabilize permissions, audit logs, and recovery operations.
-
