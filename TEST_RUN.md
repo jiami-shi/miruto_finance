@@ -12,12 +12,12 @@ Confirmed:
 
 - `db_users` has real test users
 - Slack test channel exists: `C0BGD8Q6GUW`
+- Slack Incoming Webhook URL is available and must be stored only in Apps Script Script Properties
 - test data can use historical payment records
 - AppSheet should be configured as a new app
 
 Still needed:
 
-- Slack Incoming Webhook URL for channel `C0BGD8Q6GUW`
 - AppSheet app creation from PoC DB
 - Apps Script deployment or paste into Apps Script project
 
@@ -32,4 +32,3 @@ finance_reviewer approve
 business_approver approve
 executive_approver approve
 ```
-

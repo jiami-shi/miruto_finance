@@ -19,6 +19,7 @@ The confirmed direction is:
 - PoC database Google Sheet has been created and seeded
 - `db_users` has real test users
 - Slack test channel is `C0BGD8Q6GUW`
+- Slack Incoming Webhook URL is available but must not be committed
 - AppSheet should be configured as a new app
 
 ## PoC Database
@@ -67,13 +68,12 @@ Relevant tabs:
 
 1. Configure AppSheet tables, slices, actions, and security filters against the PoC DB.
 2. Deploy or paste `apps-script/*.gs` into Apps Script and set script properties.
-3. Set `FINANCE_WORKFLOW_SLACK_WEBHOOK_URL` for the Slack test channel.
+3. Set `FINANCE_WORKFLOW_SLACK_WEBHOOK_URL` in Apps Script Script Properties.
 4. Run one end-to-end approval transition test.
 5. Verify budget pending amount after `finance_checked`.
 
 ## Open Questions
 
-- Slack Incoming Webhook URL for channel `C0BGD8Q6GUW`.
 - Return/resubmit detection rule from existing source sheets.
 - Final monthly CSV field set.
 
