@@ -102,18 +102,19 @@ AND(
 Use one payment:
 
 ```text
-pay_PAY-T100
+pay_PAY-234
 ```
 
 Expected flow:
 
 ```text
-payment_candidate
-  -> finance_checked
+finance_checked
   -> business_approved
   -> executive_approved
 ```
 
 Do not test all 20 rows first. One row is enough to prove the workflow wiring.
 
-Use `pay_PAY-T100` for evidence-link testing because the earlier first 20 seeded rows mostly do not have `evidence_url`.
+Use `pay_PAY-234` for evidence-link testing.
+
+The latest rows are already `finance_checked`, so they appear in the business approval queue. To test finance approval, manually reset one row to `payment_candidate` / `finance_reviewer`.

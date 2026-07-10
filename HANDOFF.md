@@ -30,8 +30,9 @@ The confirmed direction is:
 - id: `194C4nXsWYCEQEsuwuWVmZ18XJrGs8B_gGmhg698wfsY`
 - url: https://docs.google.com/spreadsheets/d/194C4nXsWYCEQEsuwuWVmZ18XJrGs8B_gGmhg698wfsY
 - timezone: `Asia/Tokyo`
-- seeded records: 20 payments, 20 requests, 2 budgets
-- evidence test records were added later: `pay_PAY-T100`, `pay_PAY-T103`, `pay_PAY-T60`, `pay_PAY-T61`, `pay_PAY-T107`
+- current seeded records: 11 latest payments, 11 generated requests, 3 budgets
+- all current payment evidence URLs are Google Drive links
+- current payments are initialized as `finance_checked` / `business_approver` because the pasted source data is already `経理確認済`
 
 ## Source Spreadsheet
 
@@ -48,6 +49,7 @@ Relevant tabs:
 - `imp_支払い管理リスト`
 - `Up_支払月報`
 - `agg_暫定DB`
+- `Sum_予算管理状況`
 
 ## Confirmed Roles
 
@@ -84,6 +86,26 @@ Relevant tabs:
 - Codex can inspect screenshots and update repo docs, but cannot directly edit the AppSheet app.
 - The user asked whether enum values should be entered in App Formula for `db_users.role_code`; answer: no. Enum values belong in `Type details > Values`; App Formula must be empty.
 - The user saw `Invalid dereference. Column payment_id is not a Ref`; fix by setting `db_approval_events.payment_id` to `Ref -> db_payments`, after ensuring `db_payments.payment_id` is a Text key.
+- Latest test rows are already `finance_checked`, so finance reviewer queue can be empty. Use business approver preview to test current rows, or reset one payment to `payment_candidate` / `finance_reviewer` for finance queue testing.
+
+## Budget Request Handling
+
+For the PoC, budget applications are not manually entered in AppSheet.
+
+Each latest pasted payment row generates:
+
+- one `db_payments` row
+- one linked `db_requests` row from `事業部予算申請No.`
+- one `db_budgets` row per unique `HD予算申請No`
+
+This keeps the relationship testable without building a full budget request intake UI yet.
+
+Budget balances are sourced from `Sum_予算管理状況` for the current PoC seed:
+
+- `allocated_amount = 取得額合計`
+- `used_amount = 執行額合計`
+- `pending_amount = 承認額合計 - 執行額合計`
+- `remaining_amount = 取得額合計 - 承認額合計`
 
 ## Open Questions
 

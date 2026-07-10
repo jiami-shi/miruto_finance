@@ -4,19 +4,23 @@ This file defines the minimum usable approval UI. The default AppSheet generated
 
 ## Current Test Data Note
 
-The first 20 seeded payments mostly do not have `evidence_url`.
+The PoC DB has been replaced with 11 latest 2026 payment rows from the pasted export.
 
-Additional evidence test rows were added to the PoC DB:
+All current payment rows have Google Drive evidence URLs. Use `pay_PAY-234` for the first evidence UI test.
 
-| payment_id | payment_no | evidence |
-| --- | --- | --- |
-| `pay_PAY-T100` | `PAY-T100` | yes |
-| `pay_PAY-T103` | `PAY-T103` | yes |
-| `pay_PAY-T60` | `PAY-T60` | yes |
-| `pay_PAY-T61` | `PAY-T61` | yes |
-| `pay_PAY-T107` | `PAY-T107` | yes |
+The current rows are initialized as:
 
-Use `pay_PAY-T100` for the first evidence UI test.
+```text
+status_code = finance_checked
+current_role = business_approver
+```
+
+Use business approver preview to see them. If testing the finance reviewer queue, reset one row to:
+
+```text
+status_code = payment_candidate
+current_role = finance_reviewer
+```
 
 ## Table Permissions UX
 
@@ -226,7 +230,7 @@ For now, keep Edit only if needed to enter `action_comment`. Once approve/return
 Use:
 
 ```text
-pay_PAY-T100
+pay_PAY-234
 ```
 
 Expected detail page:

@@ -33,6 +33,7 @@ Relevant source tabs:
 | `imp_支払い管理リスト` | payment request import |
 | `Up_支払月報` | existing monthly report connection |
 | `agg_暫定DB` | current temporary budget aggregation reference |
+| `Sum_予算管理状況` | current budget summary and balance reference |
 
 ## 3. Database Tabs
 
@@ -143,6 +144,17 @@ remaining_amount = allocated_amount - used_amount - pending_amount
 - `executive_approved`
 - `monthly_report_exported`
 - `returned_to_finance`
+
+For the PoC seed data, `db_budgets` is sourced from `Sum_予算管理状況`:
+
+| `db_budgets` field | `Sum_予算管理状況` source |
+| --- | --- |
+| `allocated_amount` | `取得額合計` |
+| `used_amount` | `執行額合計` |
+| `pending_amount` | `承認額合計 - 執行額合計` |
+| `remaining_amount` | `取得額合計 - 承認額合計` |
+
+This matches the current budget management sheet more closely than deriving balances only from the 11 PoC payment rows.
 
 ## 8. db_approval_events
 
@@ -259,4 +271,3 @@ Apps Script must write `db_error_log` for:
 - Monthly report export is not rewritten.
 - AppSheet does approval UI only.
 - Apps Script owns state transition integrity.
-
