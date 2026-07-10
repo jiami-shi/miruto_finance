@@ -17,6 +17,9 @@ The confirmed direction is:
 - existing monthly CSV flow remains during PoC
 - source spreadsheet headers have been inspected for the first design pass
 - PoC database Google Sheet has been created and seeded
+- `db_users` has real test users
+- Slack test channel is `C0BGD8Q6GUW`
+- AppSheet should be configured as a new app
 
 ## PoC Database
 
@@ -62,18 +65,17 @@ Relevant tabs:
 
 ## Next Actions
 
-1. Replace placeholder emails in `db_users` with real Workspace users.
-2. Configure AppSheet tables, slices, actions, and security filters against the PoC DB.
-3. Deploy or paste `apps-script/*.gs` into Apps Script and set script properties.
+1. Configure AppSheet tables, slices, actions, and security filters against the PoC DB.
+2. Deploy or paste `apps-script/*.gs` into Apps Script and set script properties.
+3. Set `FINANCE_WORKFLOW_SLACK_WEBHOOK_URL` for the Slack test channel.
 4. Run one end-to-end approval transition test.
 5. Verify budget pending amount after `finance_checked`.
 
 ## Open Questions
 
-- Slack channel or user group strategy.
+- Slack Incoming Webhook URL for channel `C0BGD8Q6GUW`.
 - Return/resubmit detection rule from existing source sheets.
 - Final monthly CSV field set.
-- Real user emails for `db_users`.
 
 ## Update Rule
 

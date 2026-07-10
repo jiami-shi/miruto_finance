@@ -60,6 +60,13 @@ Current artifact:
 
 - `Finance Workflow PoC DB`: https://docs.google.com/spreadsheets/d/194C4nXsWYCEQEsuwuWVmZ18XJrGs8B_gGmhg698wfsY
 
+Current test setup:
+
+- real `db_users` emails are configured
+- Slack test channel is `C0BGD8Q6GUW`
+- AppSheet will be a new app
+- historical payment records are approved for testing
+
 ## Milestone 3: Monthly Report Connection
 
 Status: pending

@@ -4,7 +4,7 @@ function createSlackJob(paymentId, targetRole, message) {
     payment_id: paymentId,
     type: 'slack',
     target_role: targetRole,
-    target_channel: '',
+    target_channel: CONFIG.SLACK_DEFAULT_CHANNEL,
     message: message,
     status: 'pending',
     attempt_count: 0,
