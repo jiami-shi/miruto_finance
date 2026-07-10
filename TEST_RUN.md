@@ -21,9 +21,13 @@ Still needed:
 - AppSheet app creation from PoC DB
 - Apps Script deployment or paste into Apps Script project
 
-First target test payment:
+First workflow test payment:
 
 - `pay_PAY-37`
+
+First evidence UI test payment:
+
+- `pay_PAY-T100`
 
 Expected approval path:
 

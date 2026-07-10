@@ -21,6 +21,7 @@ Milestone 2: PoC build.
 - [HANDOFF.md](HANDOFF.md): current state, decisions, next actions, and known risks
 - [docs/adr/README.md](docs/adr/README.md): architecture decision record index
 - [appsheet/COLUMN_CONFIG.md](appsheet/COLUMN_CONFIG.md): exact manual AppSheet column setup
+- [appsheet/UX_CONFIG.md](appsheet/UX_CONFIG.md): minimum usable approval UI setup
 - [appsheet/BUILD_CHECKLIST.md](appsheet/BUILD_CHECKLIST.md): AppSheet build checklist
 
 ## Documentation Rule
