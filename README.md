@@ -1,4 +1,6 @@
-# Finance Workflow
+# miruto_finance
+
+Finance Workflow project.
 
 Google Workspace 上で運用する、予算・支払・月報承認 workflow の設計・実装リポジトリ。
 
