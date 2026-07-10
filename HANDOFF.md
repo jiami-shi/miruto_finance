@@ -6,6 +6,8 @@ Milestone 2 PoC build is in progress.
 
 The repository contains the PRD, system design, AppSheet setup guide, Apps Script implementation plan, test plan, project operating rules, initial ADRs, a PoC workbook builder, and local Apps Script source files.
 
+For AppSheet manual configuration, the next agent should start with `appsheet/COLUMN_CONFIG.md`, then `appsheet/BUILD_CHECKLIST.md`.
+
 The confirmed direction is:
 
 - payment approval is the first PoC target
@@ -66,11 +68,20 @@ Relevant tabs:
 
 ## Next Actions
 
-1. Configure AppSheet tables, slices, actions, and security filters against the PoC DB.
-2. Deploy or paste `apps-script/*.gs` into Apps Script and set script properties.
-3. Set `FINANCE_WORKFLOW_SLACK_WEBHOOK_URL` in Apps Script Script Properties.
-4. Run one end-to-end approval transition test.
-5. Verify budget pending amount after `finance_checked`.
+1. Finish AppSheet column configuration using `appsheet/COLUMN_CONFIG.md`.
+2. Configure AppSheet tables, slices, actions, and security filters against the PoC DB.
+3. Deploy or paste `apps-script/*.gs` into Apps Script and set script properties.
+4. Set `FINANCE_WORKFLOW_SLACK_WEBHOOK_URL` in Apps Script Script Properties.
+5. Run one end-to-end approval transition test.
+6. Verify budget pending amount after `finance_checked`.
+
+## AppSheet Current Context
+
+- There is no AppSheet MCP connector in this environment.
+- AppSheet UI must be configured manually by the user.
+- Codex can inspect screenshots and update repo docs, but cannot directly edit the AppSheet app.
+- The user asked whether enum values should be entered in App Formula for `db_users.role_code`; answer: no. Enum values belong in `Type details > Values`; App Formula must be empty.
+- The user saw `Invalid dereference. Column payment_id is not a Ref`; fix by setting `db_approval_events.payment_id` to `Ref -> db_payments`, after ensuring `db_payments.payment_id` is a Text key.
 
 ## Open Questions
 

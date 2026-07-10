@@ -30,6 +30,8 @@ Use these tables:
 | `db_notifications` | `notification_id` |
 | `db_error_log` | `error_id` |
 
+For complete column setup, use [COLUMN_CONFIG.md](COLUMN_CONFIG.md).
+
 ## 3. Replace User Emails
 
 Done in `db_users`.
@@ -111,4 +113,3 @@ payment_candidate
 ```
 
 Do not test all 20 rows first. One row is enough to prove the workflow wiring.
-

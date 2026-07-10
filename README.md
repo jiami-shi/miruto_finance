@@ -18,6 +18,8 @@ Milestone 2: PoC build.
 - [PLAN.md](PLAN.md): milestone plan and current working plan
 - [HANDOFF.md](HANDOFF.md): current state, decisions, next actions, and known risks
 - [docs/adr/README.md](docs/adr/README.md): architecture decision record index
+- [appsheet/COLUMN_CONFIG.md](appsheet/COLUMN_CONFIG.md): exact manual AppSheet column setup
+- [appsheet/BUILD_CHECKLIST.md](appsheet/BUILD_CHECKLIST.md): AppSheet build checklist
 
 ## Documentation Rule
 

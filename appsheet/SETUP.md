@@ -20,6 +20,8 @@ Do not connect AppSheet directly to the original import tabs for approval action
 
 Before configuring actions, replace the placeholder rows in `db_users` with real Workspace emails.
 
+Manual column configuration is specified in [COLUMN_CONFIG.md](COLUMN_CONFIG.md). Use that file before creating slices, views, or actions.
+
 ## 2. Tables
 
 | table | key | updates |
