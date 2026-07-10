@@ -6,7 +6,7 @@ Milestone 2 PoC build is in progress.
 
 The repository contains the PRD, system design, AppSheet setup guide, Apps Script implementation plan, test plan, project operating rules, initial ADRs, a PoC workbook builder, and local Apps Script source files.
 
-For AppSheet manual configuration, the next agent should start with `appsheet/COLUMN_CONFIG.md`, then `appsheet/BUILD_CHECKLIST.md`.
+For AppSheet manual configuration, the next agent should start with `appsheet/COLUMN_CONFIG.md`, then `appsheet/UX_CONFIG.md`, then `appsheet/BUILD_CHECKLIST.md`.
 
 The confirmed direction is:
 
@@ -31,6 +31,7 @@ The confirmed direction is:
 - url: https://docs.google.com/spreadsheets/d/194C4nXsWYCEQEsuwuWVmZ18XJrGs8B_gGmhg698wfsY
 - timezone: `Asia/Tokyo`
 - seeded records: 20 payments, 20 requests, 2 budgets
+- evidence test records were added later: `pay_PAY-T100`, `pay_PAY-T103`, `pay_PAY-T60`, `pay_PAY-T61`, `pay_PAY-T107`
 
 ## Source Spreadsheet
 
@@ -69,11 +70,12 @@ Relevant tabs:
 ## Next Actions
 
 1. Finish AppSheet column configuration using `appsheet/COLUMN_CONFIG.md`.
-2. Configure AppSheet tables, slices, actions, and security filters against the PoC DB.
-3. Deploy or paste `apps-script/*.gs` into Apps Script and set script properties.
-4. Set `FINANCE_WORKFLOW_SLACK_WEBHOOK_URL` in Apps Script Script Properties.
-5. Run one end-to-end approval transition test.
-6. Verify budget pending amount after `finance_checked`.
+2. Configure usable AppSheet views and evidence button using `appsheet/UX_CONFIG.md`.
+3. Configure AppSheet tables, slices, actions, and security filters against the PoC DB.
+4. Deploy or paste `apps-script/*.gs` into Apps Script and set script properties.
+5. Set `FINANCE_WORKFLOW_SLACK_WEBHOOK_URL` in Apps Script Script Properties.
+6. Run one end-to-end approval transition test.
+7. Verify budget pending amount after `finance_checked`.
 
 ## AppSheet Current Context
 

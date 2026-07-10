@@ -32,6 +32,8 @@ Use these tables:
 
 For complete column setup, use [COLUMN_CONFIG.md](COLUMN_CONFIG.md).
 
+For usable approval screens, use [UX_CONFIG.md](UX_CONFIG.md).
+
 ## 3. Replace User Emails
 
 Done in `db_users`.
@@ -100,7 +102,7 @@ AND(
 Use one payment:
 
 ```text
-pay_PAY-37
+pay_PAY-T100
 ```
 
 Expected flow:
@@ -113,3 +115,5 @@ payment_candidate
 ```
 
 Do not test all 20 rows first. One row is enough to prove the workflow wiring.
+
+Use `pay_PAY-T100` for evidence-link testing because the earlier first 20 seeded rows mostly do not have `evidence_url`.
