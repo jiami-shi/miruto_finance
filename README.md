@@ -1,27 +1,35 @@
 # miruto_finance
 
-Finance Workflow project.
-
-Google Workspace 上で運用する、予算・支払・月報承認 workflow の設計・実装リポジトリ。
+Finance workflow project for budget authorization, payment confirmation, and monthly report connection inside Google Workspace.
 
 ## Current Milestone
 
 Milestone 2: PoC build.
 
-現在は PoC database と Apps Script backend の最小実装中。
+Current product model:
+
+```text
+budget request authorization
+  -> payment execution confirmation
+  -> monthly report connection
+```
+
+Do not design this as a simple per-payment approval chain. Budget requests authorize category and amount. Payments inherit that category and normally require only finance confirmation; exceptional payments escalate.
 
 ## Current Artifacts
 
 - [Finance Workflow PoC DB](https://docs.google.com/spreadsheets/d/194C4nXsWYCEQEsuwuWVmZ18XJrGs8B_gGmhg698wfsY)
+- [Source budget spreadsheet](https://docs.google.com/spreadsheets/d/1Wan-sIlRIgqO98wVnNj0L_KBRpwwakGFSpYr_w5OFqk)
 
 ## Core Documents
 
 - [PRD.md](PRD.md): product requirements and PoC scope
+- [DESIGN.md](DESIGN.md): data model, state machines, backend boundaries
 - [PLAN.md](PLAN.md): milestone plan and current working plan
 - [HANDOFF.md](HANDOFF.md): current state, decisions, next actions, and known risks
 - [docs/adr/README.md](docs/adr/README.md): architecture decision record index
-- [appsheet/COLUMN_CONFIG.md](appsheet/COLUMN_CONFIG.md): exact manual AppSheet column setup
-- [appsheet/UX_CONFIG.md](appsheet/UX_CONFIG.md): minimum usable approval UI setup
+- [appsheet/COLUMN_CONFIG.md](appsheet/COLUMN_CONFIG.md): manual AppSheet column setup
+- [appsheet/UX_CONFIG.md](appsheet/UX_CONFIG.md): manual AppSheet slices, views, and actions
 - [appsheet/BUILD_CHECKLIST.md](appsheet/BUILD_CHECKLIST.md): AppSheet build checklist
 
 ## Documentation Rule
@@ -38,17 +46,19 @@ No implementation milestone is considered done unless the related docs are curre
 ## First-Phase Direction
 
 - Use Google Sheets as the first-phase database.
-- Use AppSheet as the approval UI.
+- Use AppSheet as the approval and confirmation UI.
 - Use Apps Script for backend jobs only.
 - Keep existing monthly CSV flow during PoC.
 - Store approval history as append-only events.
 - Use role names, not personal names, in workflow logic.
+- Keep category on budget request; never make payment category authoritative.
 
-## Planned Repository Structure
+## Repository Structure
 
 ```text
 .
 ├── PRD.md
+├── DESIGN.md
 ├── PLAN.md
 ├── HANDOFF.md
 ├── README.md
@@ -60,4 +70,4 @@ No implementation milestone is considered done unless the related docs are curre
 └── test-data/
 ```
 
-`outputs/` and `node_modules/` are local build artifacts and are not committed.
+`outputs/` and `node_modules/` are local artifacts and are not committed.

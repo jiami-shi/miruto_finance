@@ -8,12 +8,14 @@ https://docs.google.com/spreadsheets/d/194C4nXsWYCEQEsuwuWVmZ18XJrGs8B_gGmhg698w
 
 Use these tables:
 
-- `db_payments`
 - `db_requests`
+- `db_payments`
 - `db_budgets`
+- `db_budget_categories`
 - `db_approval_events`
 - `db_users`
 - `db_approval_rules`
+- `db_evidence_files`
 - `db_notifications`
 - `db_error_log`
 
@@ -21,100 +23,80 @@ Use these tables:
 
 | table | key |
 | --- | --- |
-| `db_payments` | `payment_id` |
 | `db_requests` | `request_id` |
+| `db_payments` | `payment_id` |
 | `db_budgets` | `budget_id` |
+| `db_budget_categories` | `budget_category_id` |
 | `db_approval_events` | `approval_event_id` |
 | `db_users` | `user_email` |
 | `db_approval_rules` | `rule_id` |
 | `db_notifications` | `notification_id` |
 | `db_error_log` | `error_id` |
 
-For complete column setup, use [COLUMN_CONFIG.md](COLUMN_CONFIG.md).
+Use [COLUMN_CONFIG.md](COLUMN_CONFIG.md) for exact columns.
 
-For usable approval screens, use [UX_CONFIG.md](UX_CONFIG.md).
+## 3. Confirm Refs
 
-## 3. Replace User Emails
+- `db_requests.budget_id` -> `db_budgets`
+- `db_payments.request_id` -> `db_requests`
+- `db_payments.budget_id` -> `db_budgets`
+- `db_budget_categories.budget_id` -> `db_budgets`
+- `db_approval_events.request_id` -> `db_requests`
+- `db_approval_events.payment_id` -> `db_payments`
 
-Done in `db_users`.
+## 4. Hide Old Payment Category
 
-Current roles:
+If `db_payments.cost_category` exists:
 
-- `finance_reviewer`
-- `business_approver`
-- `executive_approver`
-- `admin`
+- Show: off
+- Editable: off
+- Required: off
 
-## 4. Add Security Filter For `db_payments`
+Payment category must be displayed through:
 
-```appsheet
-OR(
-  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "admin",
-  [current_role] = LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")
-)
-```
+- `[request_id].[source_category_label]`
+- `[request_id].[budget_category_code]`
 
-## 5. Create Slices
+## 5. Create Slices and Views
 
-### `slice_finance_queue`
+Use [UX_CONFIG.md](UX_CONFIG.md).
 
-```appsheet
-AND(
-  [current_role] = "finance_reviewer",
-  IN([status_code], {"payment_candidate", "returned_to_finance"}),
-  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "finance_reviewer"
-)
-```
+Required budget queues:
 
-### `slice_business_queue`
+- `個別予算 事業承認キュー`
+- `定常予算 事業承認キュー`
+- `定常予算 役員承認キュー`
 
-```appsheet
-AND(
-  [current_role] = "business_approver",
-  [status_code] = "finance_checked",
-  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "business_approver"
-)
-```
+Required payment queues:
 
-### `slice_executive_queue`
+- `経理確認キュー`
+- `異常支払 事業承認キュー`
+- `異常支払 役員承認キュー`
 
-```appsheet
-AND(
-  [current_role] = "executive_approver",
-  [status_code] = "business_approved",
-  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "executive_approver"
-)
-```
+## 6. Create Actions
 
-## 6. Create Views
+Minimum actions:
 
-| view | source |
-| --- | --- |
-| `経理確認キュー` | `slice_finance_queue` |
-| `事業承認キュー` | `slice_business_queue` |
-| `役員承認キュー` | `slice_executive_queue` |
-| `支払詳細` | `db_payments` |
-| `エラーログ` | `db_error_log` |
-| `通知ジョブ` | `db_notifications` |
+- individual budget approve
+- recurring budget business approve
+- recurring budget executive approve
+- budget reject/cancel
+- normal payment finance approve
+- exceptional payment escalate
+- exceptional payment business approve
+- exceptional payment executive approve
+- payment reject/cancel
 
-## 7. First Manual Test
+Every state-changing action must append one `db_approval_events` row.
 
-Use one payment:
+## 7. First Manual Tests
 
-```text
-pay_PAY-234
-```
+Run only one row per case first:
 
-Expected flow:
+1. `individual_budget`: business approval -> `approved`
+2. `recurring_budget`: business approval -> executive approval -> `approved`
+3. normal payment: finance approval -> `payment_approved`
+4. exceptional payment: finance escalation -> business approval -> executive approval -> `payment_approved`
+5. evidence link opens from payment detail
 
-```text
-finance_checked
-  -> business_approved
-  -> executive_approved
-```
-
-Do not test all 20 rows first. One row is enough to prove the workflow wiring.
-
-Use `pay_PAY-234` for evidence-link testing.
-
-The latest rows are already `finance_checked`, so they appear in the business approval queue. To test finance approval, manually reset one row to `payment_candidate` / `finance_reviewer`.
+Do not test all rows until these pass.

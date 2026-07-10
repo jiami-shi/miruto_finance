@@ -2,271 +2,258 @@
 
 ## 1. 背景
 
-現在の予算・支払・月報承認業務は、Google Sheets、Google Apps Script、GAS Web App、Slack、CSV 出力を組み合わせて運用されている。
+現行運用は Google Sheets、Google Apps Script、GAS Web App、Slack、CSV を組み合わせた内部 workflow である。データソース、承認状態、承認履歴、通知、月報 CSV 出力が分散しており、長期運用に必要な安定性、監査性、保守性が不足している。
 
-既存運用では、複数の取込シート、支払ログ、月報作成用シート、確認ツール用シートがそれぞれ実質的なデータソースになっており、承認状態、履歴、通知、月報出力の責務が分散している。
-
-本プロジェクトでは、Google Workspace エコシステム内で運用を継続しながら、予算・支払・月報承認をより安全で、保守しやすく、監査可能な内部 workflow として再設計する。
+第一期では Google Workspace の中に留まり、AppSheet、Google Sheets、Apps Script、Slack を使って、予算承認と支払確認を分離した最小 PoC を作る。
 
 ## 2. Product Goal
 
-予算申請、支払申請、月報承認の workflow を、統一されたデータモデル、明確な状態管理、ロールベースの承認 UI、監査ログ、通知処理に整理する。
+予算申請を「支払の根拠となる承認済み authorization」として管理し、支払申請はその予算に紐づく実行確認として扱う。
 
-第一期では全面刷新ではなく、既存 Sheets / Apps Script / CSV 運用を壊さずに、AppSheet を使った承認 workflow の PoC を構築する。
+目的:
 
-## 3. 現状 Workflow
+- 予算申請、支払、承認履歴、通知を統一 DB で管理する。
+- 承認状態を code で管理し、日本語表示名と分離する。
+- 支払時に費目を選ばせず、予算申請の費目を継承する。
+- 通常支払は経理確認で完了し、異常時のみ事業承認者と役員承認者に escalation する。
+- 予算カテゴリ別の消化率を表示し、超過リスクを承認前に見えるようにする。
 
-主なデータソースは以下である。
+## 3. Core Decisions
 
-- `imp_定常予算申請`
-- `imp_HD取得予算管理リスト`
-- `imp_シニア_支払いリスト`
-- `支払い管理_定常`
+- `category` は予算申請で決定する。支払申請では選択・編集しない。
+- 予算申請は authorization object、支払申請は execution object とする。
+- `individual_budget` は `business_approver` の承認だけで有効になる。
+- `recurring_budget` は `business_approver -> executive_approver` の承認で有効になる。
+- 予算申請は経理初審を通さない。
+- 支払は原則 `finance_reviewer` が invoice、金額、支払情報を確認して完了する。
+- 支払が異常条件に該当する場合のみ `business_approver -> executive_approver` に escalation する。
 
-Apps Script は条件に応じて支払データを以下の支払ログへ転記している。
+## 4. Scope
 
-- `支払いログ_振込前払い`
-- `支払いログ_翌月末払い`
-- `支払いログ_売上からの差引`
+第一期 PoC の対象:
 
-月報対象データは `agg_月報作成用シート` に集約され、承認確認 UI 用に `月報確認ツール生成用` が生成される。
+- 20-30 件程度のテストデータ。
+- Google Sheets を PoC database として利用。
+- AppSheet で予算承認 queue と支払確認 queue を作る。
+- approve / reject / cancel を AppSheet action で実行する。
+- 全操作を `db_approval_events` に append-only で保存する。
+- Slack 通知 job を作成・送信する。
+- 予算カテゴリ別の消化率 warning を表示する。
+- 月報 CSV は既存処理との接続確認に留める。
 
-現在の GAS Web App は、承認カード表示、ロール別フィルタ、証憑リンク確認、単票閲覧、複数選択、複数承認、承認状態の書き戻し、Slack 通知を行っている。
+## 5. Non-goals
 
-## 4. 現在の課題
+- Cloud SQL への移行。
+- 独自 Web App の再構築。
+- 既存月報 CSV 生成処理の全面刷新。
+- BigQuery / Looker Studio 連携。
+- 複雑な兼務ロール、代理承認、組織階層管理。
+- 定常予算の月次上限制御。
+- 個別予算の支払回数制限。
 
-- データソースが分散しており、正しい状態の所在が不明確である。
-- 承認状態が文字列に依存しており、正式な状態機械がない。
-- 承認権限が人名や脆い条件に依存している。
-- Sheet の列構造変更により Apps Script が壊れやすい。
-- 承認、月報、支払ログ、Slack 通知の責務が混在している。
-- 誰が、いつ、何を承認したかを追跡しにくい。
-- `支払いNo` や Sheet row を長期主キーとして使うにはリスクがある。
-- `月報確認ツール生成用` が view ではなく事実上のデータソースになっている。
+## 6. Users / Roles
 
-## 5. Scope
-
-第一期では、AppSheet を使って支払単位の承認 workflow を構築する。
-
-対象範囲:
-
-- 20〜30 件程度のテストデータ
-- 支払単位の承認
-- 予算申請と支払明細の一対多関係
-- 経理確認者、事業承認者、役員承認者による承認
-- approve / reject / return
-- 承認イベントの保存
-- Slack 通知 job の作成と送信
-- 予算残高の最小計算
-- 既存月報 CSV 出力との接続確認
-
-## 6. Non-goals
-
-第一期では以下を行わない。
-
-- Cloud SQL への移行
-- 完全な独自 Web App の再構築
-- 既存月報 CSV 生成処理の全面刷新
-- BigQuery / Looker Studio 連携
-- 複雑な組織階層・兼務ロール管理
-- 全履歴データの完全移行
-- すべての支払種別・例外処理の網羅
-
-## 7. Users / Roles
-
-| role code | 表示名 | 説明 |
+| role code | 表示名 | 主な責務 |
 | --- | --- | --- |
-| `requester` | 申請者 | 予算・支払の元申請者 |
-| `finance_reviewer` | 経理確認者 | 金額、証憑、予算残高を確認する |
-| `business_approver` | 事業承認者 | 事業責任者として承認する |
-| `executive_approver` | 役員承認者 | 最終承認を行う |
-| `admin` | 管理者 | データ、設定、エラーを管理する |
+| `requester` | 申請者 | 予算申請・支払申請を提出する |
+| `finance_reviewer` | 経理確認者 | 支払金額、invoice、支払情報を確認する |
+| `business_approver` | 事業承認者 | 予算と異常支払の事業判断を行う |
+| `executive_approver` | 役員承認者 | 定常予算と異常支払の最終承認を行う |
+| `admin` | 管理者 | DB、設定、エラーを管理する |
+| `system` | システム | import、通知、再計算を実行する |
 
-第一期では少数の利用者に限定する。
+## 7. Budget Request Types
 
-## 8. User Journey
+### `individual_budget`
 
-### 経理確認者
+表示名: `個別予算`
 
-1. AppSheet の承認キューを開く。
-2. `payment_candidate` の支払を確認する。
-3. 金額、証憑、予算情報を確認する。
-4. 問題なければ approve し、状態を `finance_checked` にする。
-5. 問題があれば requester へ return、または reject する。
+- 一回または少数回の支払を想定する。
+- 承認経路は `business_approver` のみ。
+- 支払回数は第一期では制限しない。
+- 累計支払金額が承認額を超える場合は異常支払として扱う。
 
-### 事業承認者
+### `recurring_budget`
 
-1. AppSheet の承認キューを開く。
-2. `finance_checked` の支払を確認する。
-3. approve / return / reject を実行する。
-4. approve 後、状態は `business_approved` になる。
+表示名: `定常予算`
 
-### 役員承認者
+- 特定期間内で継続的に支払う予算。
+- 承認経路は `business_approver -> executive_approver`。
+- `valid_from` と `valid_to` を必須にする。
+- 第一期では有効期間内の承認総額で管理し、月次上限は作らない。
+- 支払日が有効期間外の場合は異常支払として扱う。
 
-1. AppSheet の承認キューを開く。
-2. `business_approved` の支払を確認する。
-3. approve / return / reject を実行する。
-4. approve 後、状態は `executive_approved` になる。
+## 8. Payment Rules
 
-### 申請者
+- 支払申請は必ず承認済みの `db_requests` に紐づく。
+- 支払申請は `budget_category_code` と `source_category_label` を予算申請から継承する。
+- 支払申請画面では category を表示専用にする。
+- 通常支払は `finance_reviewer` の確認で `payment_approved` になる。
+- 異常支払は `business_approver -> executive_approver` に escalation する。
 
-第一期では AppSheet で直接修正しない。
+異常条件:
 
-差戻しされた場合、既存の元 Sheet 側で修正し、再取込または経理確認者による再確認を行う。
+- 支払後に該当予算申請の累計支払額が承認額を超える。
+- 支払後に該当予算カテゴリまたは総額の消化率が 100% を超える。
+- `recurring_budget` の支払日が `valid_from` から `valid_to` の範囲外である。
+- 支払金額が該当予算申請の残額を超える。
 
-## 9. Functional Requirements
+## 9. Data Objects
 
-- システムは既存 Sheet から支払候補データを取込できること。
-- システムは `request_id` と `payment_id` を生成・保持できること。
-- 一つの `Request` は複数の `Payment` を持てること。
-- AppSheet はログインユーザーの role に応じて承認対象だけを表示すること。
-- 経理確認者は `payment_candidate` を approve / return / reject できること。
-- 事業承認者は `finance_checked` を approve / return / reject できること。
-- 役員承認者は `business_approved` を approve / return / reject できること。
-- すべての承認操作は `ApprovalEvents` に追記されること。
-- 承認操作は Slack 通知 job を作成できること。
-- Slack 通知失敗は承認処理自体を失敗させないこと。
-- 予算残高は `finance_checked` 以降の支払を pending として計算できること。
-- 月報 CSV は第一期では既存処理を基本維持すること。
+第一期の主要 object:
 
-## 10. Data Objects
+- `Requests`: 予算申請 master。
+- `Payments`: 支払申請。
+- `Budgets`: HD 予算 master / balance。
+- `BudgetCategories`: 予算カテゴリ別 balance。
+- `ApprovalEvents`: 承認・却下・取消の audit log。
+- `Users`: role mapping。
+- `ApprovalRules`: state transition rule。
+- `EvidenceFiles`: 証憑 metadata。
+- `Notifications`: Slack job。
+- `ErrorLog`: backend error log。
 
-第一期の主要データオブジェクトは以下である。
+## 10. State Machines
 
-- `Requests`
-- `Payments`
-- `Budgets`
-- `ApprovalEvents`
-- `Users`
-- `ApprovalRules`
-- `EvidenceFiles`
-- `Notifications`
-- `ErrorLog`
-
-月報の `MonthlyReports` と `MonthlyReportItems` は、既存 CSV 処理の置換時に追加検討する。
-
-## 11. State Machine
-
-第一期の支払状態は以下を基本とする。
-
-| status code | 表示名 | current role |
-| --- | --- | --- |
-| `imported` | 取込済 | system |
-| `payment_candidate` | 支払候補 | `finance_reviewer` |
-| `finance_checked` | 経理確認済 | `business_approver` |
-| `business_approved` | 事業承認済 | `executive_approver` |
-| `executive_approved` | 役員承認済 | system |
-| `monthly_report_exported` | 月報出力済 | system |
-| `completed` | 完了 | none |
-| `returned_to_finance` | 経理差戻し | `finance_reviewer` |
-| `returned_to_requester` | 申請者差戻し | `requester` |
-| `rejected` | 却下 | none |
-| `cancelled` | キャンセル | none |
-| `error` | エラー | admin |
-
-主な承認フロー:
+### Budget request statuses
 
 ```text
-payment_candidate
-  -> finance_checked
-  -> business_approved
-  -> executive_approved
-  -> monthly_report_exported
-  -> completed
+draft
+submitted
+business_approval_pending
+business_approved
+executive_approval_pending
+executive_approved
+approved
+rejected
+cancelled
+error
 ```
 
-状態判定は必ず `status_code` を使う。日本語表示名は UI 表示専用とする。
-
-## 12. Permission Requirements
-
-- ユーザー権限は `Users` テーブルで管理する。
-- AppSheet は `USEREMAIL()` を使って現在ユーザーを判定する。
-- ユーザーは自分の role に対応する承認対象だけを閲覧・操作できる。
-- `db_*` テーブルは原則として直接編集させない。
-- 手動編集が必要な場合は admin に限定する。
-
-## 13. AppSheet Requirements
-
-AppSheet は第一期の承認 UI として利用する。
-
-必要な画面:
-
-- 経理確認キュー
-- 事業承認キュー
-- 役員承認キュー
-- 支払詳細
-- 証憑リンク表示
-- approve / return / reject action
-- コメント入力
-- 管理者向けエラー・通知確認 view
-
-第一期では、申請者による修正 UI は作らない。
-
-## 14. Apps Script Requirements
-
-Apps Script は UI ではなく backend 処理を担当する。
-
-主な責務:
-
-- 既存 Sheet からの取込
-- `db_*` テーブルへの同期
-- 承認状態更新
-- `ApprovalEvents` 追記
-- 予算残高再計算
-- Slack 通知 job 作成
-- pending 通知 job の送信
-- 月報 CSV 生成処理との接続
-- エラー記録
-
-## 15. Slack Notification Requirements
-
-- 承認操作は Slack を直接送信せず、`Notifications` に job を作成する。
-- backend job が pending 通知を送信する。
-- 送信成功・失敗・試行回数・エラー内容を記録する。
-- 通知先は人名ではなく role または channel を基準にする。
-
-## 16. Monthly Report CSV Requirements
-
-第一期では既存の月報 CSV 生成処理を維持する。
-
-PoC の目的は、`executive_approved` になった支払データが既存月報出力に接続可能か確認することである。
-
-月報バッチ管理、月報明細テーブル、CSV 再生成履歴は第二期以降に検討する。
-
-## 17. Budget Calculation Requirements
-
-第一期では以下の最小計算を行う。
+個別予算:
 
 ```text
-remaining_amount = allocated_amount - used_amount - pending_amount
+submitted
+  -> business_approval_pending
+  -> approved
 ```
 
-`pending_amount` は以下の状態の支払金額合計とする。
+定常予算:
 
-- `finance_checked`
-- `business_approved`
-- `executive_approved`
-- `monthly_report_exported`
-- `returned_to_finance`
+```text
+submitted
+  -> business_approval_pending
+  -> executive_approval_pending
+  -> approved
+```
 
-`returned_to_requester`、`rejected`、`cancelled` は予算を占有しない。
+### Payment statuses
 
-## 18. Error Handling
+```text
+payment_draft
+payment_submitted
+finance_check_pending
+finance_checked
+exception_business_approval_pending
+exception_executive_approval_pending
+payment_approved
+payment_rejected
+payment_cancelled
+payment_error
+```
 
-- backend 処理の失敗は `ErrorLog` に記録する。
-- Slack 通知失敗は承認状態を rollback しない。
-- 不正な状態遷移は拒否し、エラーとして記録する。
-- 必須データ不足の取込行は `error` または import error として扱う。
+通常支払:
 
-## 19. Audit Log Requirements
+```text
+payment_submitted
+  -> finance_check_pending
+  -> payment_approved
+```
 
-すべての承認操作は `ApprovalEvents` に追記する。
+異常支払:
 
-最低限記録する項目:
+```text
+finance_check_pending
+  -> exception_business_approval_pending
+  -> exception_executive_approval_pending
+  -> payment_approved
+```
+
+状態判定は code を使う。日本語表示名は UI 表示専用とする。
+
+## 11. AppSheet Requirements
+
+Budget queues:
+
+- `個別予算 事業承認キュー`
+- `定常予算 事業承認キュー`
+- `定常予算 役員承認キュー`
+
+Payment queues:
+
+- `経理確認キュー`
+- `異常支払 事業承認キュー`
+- `異常支払 役員承認キュー`
+
+Payment detail で表示するもの:
+
+- 継承された標準カテゴリ。
+- 元シートの費目名。
+- 予算申請承認額。
+- 既支払累計額。
+- 本支払後の予測累計額。
+- カテゴリ別消化率。
+- 異常判定と理由。
+- Google Drive 証憑 preview / open link。
+
+## 12. Apps Script Requirements
+
+Apps Script は UI ではなく backend job として利用する。
+
+- source sheets から `db_*` へ import する。
+- 予算申請と支払申請の state transition を検証する。
+- `db_approval_events` を append する。
+- budget / category balance を再計算する。
+- Slack notification job を作成・送信する。
+- 月報 CSV 連携に必要な approved payment を抽出する。
+- error を `db_error_log` に保存する。
+
+## 13. Budget Calculation
+
+標準カテゴリ:
+
+| code | 表示名 | `Sum_予算管理状況` 対応列 |
+| --- | --- | --- |
+| `development` | 開発費用 | 開発費用 |
+| `cogs` | 原価費用 | 原価費用 |
+| `advertising` | 広告費用 | 広告費用 |
+| `management` | 管理費用 | 管理費用 |
+| `expense` | 経費 | 経費 |
+
+第一期の消化率:
+
+```text
+burn_rate = planned_amount / allocated_amount
+```
+
+支払画面では本支払を加えた予測値も表示する。
+
+```text
+projected_burn_rate = (planned_amount + current_payment_amount) / allocated_amount
+```
+
+`allocated_amount` が 0 または空の場合は消化率を空欄にし、warning を出す。
+
+## 14. Audit Log
+
+approve / reject / cancel / return / resubmit は必ず `db_approval_events` に記録する。
+
+最低限の項目:
 
 - `approval_event_id`
-- `payment_id`
 - `request_id`
+- `payment_id`
+- `target_type`
 - `actor_email`
 - `actor_role`
 - `action`
@@ -275,51 +262,32 @@ remaining_amount = allocated_amount - used_amount - pending_amount
 - `comment`
 - `created_at`
 
-`ApprovalEvents` は編集ではなく追記を基本とする。
+## 15. Success Criteria
 
-## 20. PoC Scope
-
-PoC は以下に限定する。
-
-- 20〜30 件のテストデータ
-- Google Sheets を database として利用
-- AppSheet 承認キュー
-- 経理確認者、事業承認者、役員承認者
-- approve / reject / return
-- `ApprovalEvents` 保存
-- Slack 通知テスト
-- 予算残高の最小計算
-- 既存月報 CSV との接続確認
-
-## 21. Success Criteria
-
-- テストデータが AppSheet の role 別 queue に正しく表示される。
-- 各 role が許可された状態だけを操作できる。
-- approve / reject / return の結果が `Payments` に反映される。
-- 各操作が `ApprovalEvents` に追記される。
-- `finance_checked` 以降の金額が予算 pending として反映される。
+- 個別予算が事業承認者 queue にだけ表示される。
+- 定常予算が事業承認者、役員承認者の順に表示される。
+- 支払申請が予算申請の category を継承し、支払画面で編集できない。
+- 正常支払が経理確認で完了する。
+- 超過、期間外、残額不足の支払が異常 queue に入る。
+- 予算カテゴリ消化率が表示され、100% 超過時に warning が出る。
+- 全操作が `db_approval_events` に保存される。
 - Slack 通知が job として記録され、送信結果を追跡できる。
-- 既存月報 CSV 処理を壊さない。
 
-## 22. Risks
+## 16. Risks
 
-- Google Sheets を database として使うため、直接編集や列変更の統制が必要である。
-- AppSheet の権限設定が不十分な場合、承認対象外データが見えるリスクがある。
-- 既存 Sheet の列名・運用変更により import mapping が壊れる可能性がある。
-- 予算残高計算の定義が曖昧な場合、業務上の数字とズレる可能性がある。
-- return 後の再提出運用が手動の場合、ステータス同期漏れが起きる可能性がある。
+- Google Sheets を DB として使うため、直接編集と列変更の統制が必要。
+- AppSheet の手動設定ミスで権限漏れが起きる可能性がある。
+- 元シートの費目名と標準 5 カテゴリの mapping が曖昧な場合、消化率がずれる。
+- 月次上限を持たない定常予算は、期間前半に使い切るリスクを warning できない。
 
-## 23. Open Questions
+## 17. Open Questions
 
-- 予算管理表の正式な column mapping
-- 既存 `支払いNo` と新 `payment_id` の対応ルール
-- return 後の再提出を import job で検知するか、経理確認者が手動で再開するか
-- Slack 通知先 channel / user group
-- 月報 CSV 出力に必要な最終 field set
-- 第二期で `MonthlyReports` / `MonthlyReportItems` を追加するタイミング
+- 元シートの費目名から 5 標準カテゴリへの最終 mapping。
+- return / resubmit を AppSheet 内だけで閉じるか、元シート再 import と同期するか。
+- 月報 CSV に渡す最終 field set。
 
-## 24. ADR Links
+## 18. ADR Links
 
-- `ADR-001-appsheet.md`: AppSheet を承認 UI として採用する判断
-- `ADR-002-spreadsheet-db.md`: Google Sheets を第一期 database として使う判断
-- `ADR-003-appscript-backend.md`: Apps Script を backend job 処理に限定する判断
+- `docs/adr/ADR-001-appsheet.md`
+- `docs/adr/ADR-002-spreadsheet-db.md`
+- `docs/adr/ADR-003-appscript-backend.md`

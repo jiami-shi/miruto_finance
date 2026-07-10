@@ -1,7 +1,8 @@
-function createSlackJob(paymentId, targetRole, message) {
+function createSlackJob(targetType, targetId, targetRole, message) {
   appendObject_(SHEETS.NOTIFICATIONS, {
     notification_id: makeId_('ntf'),
-    payment_id: paymentId,
+    target_type: targetType,
+    target_id: targetId,
     type: 'slack',
     target_role: targetRole,
     target_channel: CONFIG.SLACK_DEFAULT_CHANNEL,

@@ -1,115 +1,166 @@
 # AppSheet UX Configuration
 
-This file defines the minimum usable approval UI. The default AppSheet generated UI is not acceptable for approval because it hides the evidence link and shows low-value technical fields.
+The generated AppSheet UI is not acceptable for approval. It hides evidence, overexposes IDs, and does not show budget risk.
 
-## Current Test Data Note
-
-The PoC DB has been replaced with 11 latest 2026 payment rows from the pasted export.
-
-All current payment rows have Google Drive evidence URLs. Use `pay_PAY-234` for the first evidence UI test.
-
-The current rows are initialized as:
-
-```text
-status_code = finance_checked
-current_role = business_approver
-```
-
-Use business approver preview to see them. If testing the finance reviewer queue, reset one row to:
-
-```text
-status_code = payment_candidate
-current_role = finance_reviewer
-```
-
-## Table Permissions UX
+## Table Permissions
 
 In `Data > Tables`:
 
 | table | Updates allowed | Add | Edit | Delete |
 | --- | --- | --- | --- | --- |
-| `db_payments` | Updates only | off | on | off |
-| `db_requests` | Read-only | off | off | off |
+| `db_requests` | Updates only | on for requesters/admin | on via actions | off |
+| `db_payments` | Updates only | on for requesters/admin | on via actions | off |
 | `db_budgets` | Read-only | off | off | off |
+| `db_budget_categories` | Read-only | off | off | off |
 | `db_approval_events` | Adds only | on | off | off |
 | `db_users` | Read-only | off | off | off |
 | `db_approval_rules` | Read-only | off | off | off |
 | `db_notifications` | Read-only | off | off | off |
 | `db_error_log` | Read-only | off | off | off |
 
-Hide system-generated Add/Delete actions for normal users. Approval should happen through explicit approve/return/reject actions, not the default Edit form.
+Hide generated Add/Edit/Delete actions from normal approvers once explicit actions exist.
 
-## Primary Payment View
+## Slices
 
-Create or update the finance queue view:
+### Budget approval slices
 
-| setting | value |
-| --- | --- |
-| View name | `経理確認キュー` |
-| For this data | `slice_finance_queue` |
-| View type | `Deck` |
-| Position | `Primary` |
-| Sort by | `scheduled_payment_date` descending, then `payment_amount_tax_excluded` descending |
-| Group by | none for first PoC |
+`slice_individual_budget_business_queue`
 
-Deck card fields:
+```appsheet
+AND(
+  [request_type] = "individual_budget",
+  [budget_request_status] = "business_approval_pending",
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "business_approver"
+)
+```
 
-| AppSheet field | value |
-| --- | --- |
-| Primary header | `payment_title` |
-| Secondary header | `vendor_name` |
-| Summary column | `payment_amount_tax_excluded` |
-| Image | empty |
+`slice_recurring_budget_business_queue`
 
-If AppSheet asks for columns:
+```appsheet
+AND(
+  [request_type] = "recurring_budget",
+  [budget_request_status] = "business_approval_pending",
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "business_approver"
+)
+```
 
-- Title/main: `payment_title`
-- Subtitle: `payment_no`
-- Detail: `vendor_name`
-- Detail: `payment_amount_tax_excluded`
+`slice_recurring_budget_executive_queue`
 
-Do not use `requester_name` as the primary header. It makes every row look the same.
+```appsheet
+AND(
+  [request_type] = "recurring_budget",
+  [budget_request_status] = "executive_approval_pending",
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "executive_approver"
+)
+```
 
-## Payment Detail View
+### Payment slices
 
-Create or update detail view:
+`slice_finance_check_queue`
 
-| setting | value |
-| --- | --- |
-| View name | `支払詳細` |
-| For this data | `db_payments` or queue slice |
-| View type | `Detail` |
+```appsheet
+AND(
+  [status_code] = "finance_check_pending",
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "finance_reviewer"
+)
+```
 
-Recommended field order:
+`slice_exception_business_queue`
+
+```appsheet
+AND(
+  [status_code] = "exception_business_approval_pending",
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "business_approver"
+)
+```
+
+`slice_exception_executive_queue`
+
+```appsheet
+AND(
+  [status_code] = "exception_executive_approval_pending",
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "executive_approver"
+)
+```
+
+## Views
+
+Budget views:
+
+| view | data | type | position |
+| --- | --- | --- | --- |
+| `個別予算 事業承認キュー` | `slice_individual_budget_business_queue` | Deck | Primary |
+| `定常予算 事業承認キュー` | `slice_recurring_budget_business_queue` | Deck | Primary |
+| `定常予算 役員承認キュー` | `slice_recurring_budget_executive_queue` | Deck | Primary |
+
+Payment views:
+
+| view | data | type | position |
+| --- | --- | --- | --- |
+| `経理確認キュー` | `slice_finance_check_queue` | Deck | Primary |
+| `異常支払 事業承認キュー` | `slice_exception_business_queue` | Deck | Primary |
+| `異常支払 役員承認キュー` | `slice_exception_executive_queue` | Deck | Primary |
+
+Deck fields:
+
+- Primary header: `request_title` or `payment_title`
+- Secondary header: `vendor_name` for payments, `requester_name` for budgets
+- Summary: amount column
+- Sort: scheduled date descending, then amount descending
+
+## Budget Detail Layout
+
+Recommended order for `db_requests` detail:
+
+1. `request_title`
+2. `request_type`
+3. `budget_request_status`
+4. `approved_amount_tax_excluded`
+5. `source_category_label`
+6. `budget_category_code`
+7. `valid_from`
+8. `valid_to`
+9. `budget_id`
+10. `product_name`
+11. `department`
+12. related payments inline view
+13. related approval events inline view
+
+Hide technical IDs from normal detail top area:
+
+- `request_id`
+- `source_sheet_name`
+- `source_no`
+- `source_url`
+- `created_at`
+- `updated_at`
+
+## Payment Detail Layout
+
+Recommended order:
 
 1. `payment_title`
 2. `payment_no`
 3. `status_code`
-4. `current_role`
-5. `payment_amount_tax_excluded`
-6. `scheduled_payment_date`
-7. `vendor_name`
-8. `payment_method`
-9. `cost_category`
-10. `budget_id`
-11. `evidence_url`
-12. `memo`
-13. `action_comment`
-14. related approval events inline view
+4. `payment_amount_tax_excluded`
+5. `scheduled_payment_date`
+6. `vendor_name`
+7. `payment_method`
+8. `inherited_source_category_label`
+9. `inherited_budget_category_code`
+10. `request_approved_amount`
+11. `request_remaining_amount`
+12. `has_payment_exception`
+13. `exception_reason`
+14. `evidence_url`
+15. `evidence_preview_url`
+16. `memo`
+17. `action_comment`
+18. related approval events inline view
 
-Hide these from the main detail view:
+Do not show editable `cost_category` on payment forms.
 
-- `payment_id`
-- `request_id`
-- `source_payment_status`
-- `business_request_no`
-- `hd_budget_ref`
-- `created_at`
-- `updated_at`
-
-They can remain visible in admin/debug views later.
-
-## Evidence Link Display
+## Evidence Preview
 
 For `db_payments.evidence_url`:
 
@@ -118,7 +169,6 @@ For `db_payments.evidence_url`:
 | Type | `URL` |
 | Show | on |
 | Editable | off |
-| Required | off |
 | Display name | `証憑を開く` |
 
 Create an action:
@@ -130,29 +180,13 @@ Create an action:
 | Do this | `External: go to a website` |
 | Target | `[evidence_url]` |
 | Only if this condition is true | `ISNOTBLANK([evidence_url])` |
-| Display prominently | on |
+| Position | Prominent |
 
-Use the action as the user-facing evidence button. The raw URL can be shown in detail during PoC, but the button is easier for approvers.
-
-## Google Drive Evidence Preview
-
-If the evidence is a Google Drive file URL like:
-
-```text
-https://drive.google.com/file/d/1xgjbsBLPqospES_14V3GrkXJq0yj3obL/view?usp=sharing
-```
-
-AppSheet can show a better inline preview than it can for external services such as freee or Bakuraku.
-
-### Recommended PoC setup
-
-Add a virtual column on `db_payments`:
+Add virtual column `evidence_preview_url`:
 
 | setting | value |
 | --- | --- |
-| Column name | `evidence_preview_url` |
 | Type | `URL` |
-| App formula | see below |
 | Show | on |
 | Editable | off |
 | Display name | `証憑プレビュー` |
@@ -171,71 +205,159 @@ IF(
 )
 ```
 
-Add `evidence_preview_url` near `evidence_url` in the payment detail view.
+Google Drive permissions still apply. If the AppSheet user cannot access the file, preview will fail.
 
-### Preview caveat
+## Core Actions
 
-Google Drive files must be accessible to the AppSheet user. If Drive permissions block the current user, the preview/link will fail even when the URL format is correct.
+### Budget approve action for individual budget
 
-For non-Google-Drive evidence URLs, keep using the `証憑を開く` action instead of expecting inline preview.
+Table: `db_requests`
 
-## Amount Display
+Condition:
 
-For amount columns:
+```appsheet
+AND(
+  [request_type] = "individual_budget",
+  [budget_request_status] = "business_approval_pending",
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "business_approver"
+)
+```
 
-- `payment_amount_tax_excluded`: Type `Price`
-- `approved_amount_tax_excluded`: Type `Price`
-- `allocated_amount`: Type `Price`
-- `used_amount`: Type `Price`
-- `pending_amount`: Type `Price`
-- `remaining_amount`: Type `Price`
+Set:
 
-If AppSheet shows `$`, change the app locale/currency if available. If not, keep it for PoC and fix display later. Do not block the approval flow on currency symbol polish.
+```text
+budget_request_status = approved
+current_role = ""
+approved_at = NOW()
+updated_at = NOW()
+```
+
+### Budget approve action for recurring budget by business
+
+Condition:
+
+```appsheet
+AND(
+  [request_type] = "recurring_budget",
+  [budget_request_status] = "business_approval_pending",
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "business_approver"
+)
+```
+
+Set:
+
+```text
+budget_request_status = executive_approval_pending
+current_role = executive_approver
+updated_at = NOW()
+```
+
+### Budget approve action for recurring budget by executive
+
+Condition:
+
+```appsheet
+AND(
+  [request_type] = "recurring_budget",
+  [budget_request_status] = "executive_approval_pending",
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "executive_approver"
+)
+```
+
+Set:
+
+```text
+budget_request_status = approved
+current_role = ""
+approved_at = NOW()
+updated_at = NOW()
+```
+
+### Payment finance approve
+
+Condition:
+
+```appsheet
+AND(
+  [status_code] = "finance_check_pending",
+  NOT([has_payment_exception]),
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "finance_reviewer"
+)
+```
+
+Set:
+
+```text
+status_code = payment_approved
+current_role = ""
+last_action_at = NOW()
+updated_at = NOW()
+```
+
+### Payment escalation
+
+Condition:
+
+```appsheet
+AND(
+  [status_code] = "finance_check_pending",
+  [has_payment_exception],
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "finance_reviewer"
+)
+```
+
+Set:
+
+```text
+status_code = exception_business_approval_pending
+current_role = business_approver
+last_action_at = NOW()
+updated_at = NOW()
+```
+
+### Exception payment approvals
+
+Business approval set:
+
+```text
+status_code = exception_executive_approval_pending
+current_role = executive_approver
+last_action_at = NOW()
+updated_at = NOW()
+```
+
+Executive approval set:
+
+```text
+status_code = payment_approved
+current_role = ""
+last_action_at = NOW()
+updated_at = NOW()
+```
+
+For every state-changing action, add a grouped action that also adds a row to `db_approval_events`.
 
 ## Navigation
 
-For normal approvers, show only:
+For normal approvers, show only queues relevant to their role. If a manager can see duplicate queues, check:
 
-- `経理確認キュー`
-- `事業承認キュー`
-- `役員承認キュー`
+- each queue uses a slice, not the raw table
+- each slice has a `LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")` condition
+- generated views for `db_requests` and `db_payments` are hidden from navigation
 
-For admin, also show:
+For admin, show:
 
-- `予算残高`
-- `通知ジョブ`
-- `エラーログ`
-
-Hide these generated views from navigation:
-
-- `db_requests`
-- `db_users`
-- `db_approval_rules`
-- `db_approval_events`
-
-They can still exist as referenced/inline data.
-
-## Remove Default Clutter
-
-In `Behavior > Actions`, hide or disable generated system actions for normal users:
-
-- Delete
-- Add
-- default Edit if custom approval actions are ready
-
-For now, keep Edit only if needed to enter `action_comment`. Once approve/return/reject actions exist, remove default Edit from the main view.
+- `db_budgets`
+- `db_budget_categories`
+- `db_notifications`
+- `db_error_log`
 
 ## First UX Test
 
-Use:
+Expected:
 
-```text
-pay_PAY-234
-```
-
-Expected detail page:
-
-- approver can read title, vendor, payment amount, scheduled date, payment method
-- `証憑を開く` button appears
-- raw technical IDs are not the first thing shown
-- action comment is visible near the bottom
+- category appears on payment detail but is not editable
+- Google Drive evidence button appears
+- normal payment can be approved by finance only
+- exceptional payment shows reason and escalation action
+- budget approval queues differ for individual and recurring budgets
