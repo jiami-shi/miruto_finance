@@ -39,7 +39,7 @@ Exit criteria:
 
 ## Milestone 2: PoC Build
 
-Status: next
+Status: in progress
 
 Goal:
 
@@ -47,13 +47,18 @@ Build the smallest working approval workflow for 20-30 test records.
 
 Scope:
 
-- create Google Sheets database tabs
-- implement import mapping
-- configure AppSheet approval queue
-- implement approve / reject / return
-- append approval events
-- create and process Slack notification jobs
-- verify budget pending calculation
+- create Google Sheets database tabs: done
+- seed 20-30 payment records: done, 20 records
+- implement import mapping: local Apps Script code drafted
+- configure AppSheet approval queue: pending
+- implement approve / reject / return: local Apps Script code drafted
+- append approval events: local Apps Script code drafted
+- create and process Slack notification jobs: local Apps Script code drafted
+- verify budget pending calculation: pending in Apps Script runtime
+
+Current artifact:
+
+- `Finance Workflow PoC DB`: https://docs.google.com/spreadsheets/d/194C4nXsWYCEQEsuwuWVmZ18XJrGs8B_gGmhg698wfsY
 
 ## Milestone 3: Monthly Report Connection
 

@@ -2,9 +2,9 @@
 
 ## Current State
 
-Milestone 1 PoC design is complete.
+Milestone 2 PoC build is in progress.
 
-The repository contains the PRD, system design, AppSheet setup guide, Apps Script implementation plan, test plan, project operating rules, and initial ADRs.
+The repository contains the PRD, system design, AppSheet setup guide, Apps Script implementation plan, test plan, project operating rules, initial ADRs, a PoC workbook builder, and local Apps Script source files.
 
 The confirmed direction is:
 
@@ -16,6 +16,15 @@ The confirmed direction is:
 - Apps Script is backend job processing
 - existing monthly CSV flow remains during PoC
 - source spreadsheet headers have been inspected for the first design pass
+- PoC database Google Sheet has been created and seeded
+
+## PoC Database
+
+- title: `Finance Workflow PoC DB`
+- id: `194C4nXsWYCEQEsuwuWVmZ18XJrGs8B_gGmhg698wfsY`
+- url: https://docs.google.com/spreadsheets/d/194C4nXsWYCEQEsuwuWVmZ18XJrGs8B_gGmhg698wfsY
+- timezone: `Asia/Tokyo`
+- seeded records: 20 payments, 20 requests, 2 budgets
 
 ## Source Spreadsheet
 
@@ -53,17 +62,18 @@ Relevant tabs:
 
 ## Next Actions
 
-1. Create the PoC database spreadsheet with `db_*` tabs.
-2. Seed `db_users` and `db_approval_rules`.
-3. Implement Apps Script schema and repository helpers.
-4. Import 20-30 rows from `imp_支払い管理リスト`.
-5. Configure AppSheet tables, slices, actions, and security filters.
+1. Replace placeholder emails in `db_users` with real Workspace users.
+2. Configure AppSheet tables, slices, actions, and security filters against the PoC DB.
+3. Deploy or paste `apps-script/*.gs` into Apps Script and set script properties.
+4. Run one end-to-end approval transition test.
+5. Verify budget pending amount after `finance_checked`.
 
 ## Open Questions
 
 - Slack channel or user group strategy.
 - Return/resubmit detection rule from existing source sheets.
 - Final monthly CSV field set.
+- Real user emails for `db_users`.
 
 ## Update Rule
 

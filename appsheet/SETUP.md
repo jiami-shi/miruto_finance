@@ -4,6 +4,8 @@
 
 Use the PoC database Google Spreadsheet containing:
 
+- URL: https://docs.google.com/spreadsheets/d/194C4nXsWYCEQEsuwuWVmZ18XJrGs8B_gGmhg698wfsY
+
 - `db_requests`
 - `db_payments`
 - `db_budgets`
@@ -15,6 +17,8 @@ Use the PoC database Google Spreadsheet containing:
 - `db_error_log`
 
 Do not connect AppSheet directly to the original import tabs for approval actions.
+
+Before configuring actions, replace the placeholder rows in `db_users` with real Workspace emails.
 
 ## 2. Tables
 
@@ -240,4 +244,3 @@ Admin must be able to inspect:
 - notification jobs with `failed`
 - payments without approval events
 - payments with missing `budget_id`
-
