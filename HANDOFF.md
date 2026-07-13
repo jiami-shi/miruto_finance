@@ -112,7 +112,7 @@ The sheet schema may still reflect the older payment-first model. Before continu
 Done: PoC DB aligned to `COLUMN_CONFIG.md`, `db_budget_categories` added, `cost_category`
 removed from `db_payments`, slices/views/actions rebuilt from `UX_CONFIG.md`.
 
-Remaining:
+Remaining (step-by-step operator guide: [`GO_LIVE_CHECKLIST.md`](GO_LIVE_CHECKLIST.md)):
 
 1. `db_approval_events` audit logging — DONE (both bots built and saved). Nothing left except
    verifying it end-to-end during the deployed test run.
