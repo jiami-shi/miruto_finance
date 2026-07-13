@@ -2,7 +2,26 @@
 
 ## Current State
 
-Milestone 2 PoC build is in progress.
+Milestone 2 PoC build: AppSheet app structure is complete. As of 2026-07-13 the
+`newtfinance-599014119` app has, verified error-free at build time:
+
+- 9 role-gated state-transition actions (3 on `db_requests`, 4 payment transitions +
+  evidence/open on `db_payments`) — see `TEST_RUN.md` for the full table.
+- 6 slices and 6 Deck views (Primary Navigation) for the role queues.
+
+Verified from live data: evidence-preview URL rewrite, payment category inheritance
+(no editable `cost_category`), and the `has_payment_exception` / `exception_reason`
+computation. See `TEST_RUN.md`.
+
+Still open before a full green test run (all tracked in `TEST_RUN.md`):
+
+1. `db_approval_events` audit-logging grouped actions — intentionally deferred; not built.
+2. PoC seed data is not test-ready: nearly all requests have `approved_amount_tax_excluded`
+   = ¥0, so every payment computes `has_payment_exception` = TRUE. No non-exceptional
+   payment exists, blocking TC-005.
+3. Apps Script back-end not deployed (blocks TC-010 / TC-011).
+4. Role-gated approval transitions not executed (editor owner-preview does not enforce the
+   USEREMAIL slice filters; executing would mutate seed data).
 
 Major product decision changed: this is no longer primarily a per-payment approval workflow. The model is now:
 
@@ -85,13 +104,19 @@ The sheet schema may still reflect the older payment-first model. Before continu
 
 ## Next Actions
 
-1. Align PoC DB tabs/columns to `appsheet/COLUMN_CONFIG.md`.
-2. Add `db_budget_categories`.
-3. Hide or remove editable payment-level `cost_category`.
-4. Rebuild AppSheet slices/views from `appsheet/UX_CONFIG.md`.
-5. Add grouped AppSheet actions that update state and append `db_approval_events`.
-6. Update Apps Script state transition logic to use separate budget and payment state machines.
-7. Run tests in `TEST_PLAN.md` and record result in `TEST_RUN.md`.
+Done: PoC DB aligned to `COLUMN_CONFIG.md`, `db_budget_categories` added, `cost_category`
+removed from `db_payments`, slices/views/actions rebuilt from `UX_CONFIG.md`.
+
+Remaining:
+
+1. Add grouped AppSheet actions that append `db_approval_events` and wrap each of the 9
+   state-transition actions (deferred).
+2. Curate PoC seed data so it is test-ready (non-zero request approved amounts; ≥1 payment
+   within budget for the normal finance path; ≥1 recurring payment outside its valid period).
+3. Update Apps Script state-transition logic to use the two separate state machines, then
+   deploy the back-end + set Script Properties.
+4. Run `TEST_PLAN.md` role-gated cases as deployed end users / via preview user emulation and
+   record in `TEST_RUN.md`.
 
 ## Update Rule
 

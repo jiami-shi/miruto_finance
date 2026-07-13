@@ -34,16 +34,16 @@ approval event audit log
 
 Current scope:
 
-- create Google Sheets database tabs: done for old schema, needs alignment
-- seed latest payment records: done
-- add/align `db_budget_categories`: pending
-- make `db_requests` the budget request master: pending in PoC DB
-- make payment category inherited/read-only: pending in AppSheet
-- configure budget approval queues: pending
-- configure finance confirmation queue: pending
-- configure exceptional payment queues: pending
-- append approval events: pending in AppSheet runtime
-- create and process Slack notification jobs: local Apps Script code exists, needs state model update
+- create Google Sheets database tabs: done, aligned to `COLUMN_CONFIG.md`
+- seed latest payment records: done (but not test-ready — see `TEST_RUN.md`)
+- add/align `db_budget_categories`: done
+- make `db_requests` the budget request master: done in PoC DB
+- make payment category inherited/read-only: done in AppSheet (no `cost_category`; inherited columns)
+- configure budget approval queues: done (individual/recurring business, recurring executive)
+- configure finance confirmation queue: done
+- configure exceptional payment queues: done (exception business, exception executive)
+- append approval events: pending — `db_approval_events` grouped actions deferred
+- create and process Slack notification jobs: local Apps Script code exists, needs state model update + deploy
 - verify budget category warning: pending
 
 Current artifact:
