@@ -96,11 +96,10 @@ PoC DB, so values were read via the AppSheet table view):
 - **TC-009 (recurring payment outside valid period):** the specific `exception_reason`
   `定常予算の有効期間外` was not observed — the two exceptional payments both trip the
   "残額超過" branch. Needs a seeded recurring-budget payment dated outside `valid_from`/`valid_to`.
-- **`db_approval_events` audit logging: PARTIALLY BUILT — see the 2026-07-13 (later) addendum
-  below.** A payment-side audit bot is built and saved; the budget-request-side bot has its
-  Event configured but its write step is not finalized; and the whole feature is blocked on a
-  `db_approval_events` schema fix in the PoC DB. Until that lands, audit-event assertions in
-  TC-001/002/003/005/006/007/008 still fail.
+- **`db_approval_events` audit logging: DONE — see the 2026-07-13 (later) addendum below.**
+  Both audit bots (`_audit_payment_event`, `_audit_budget_request_event`) are built, saved, and
+  error-free. The audit-event assertions in TC-001/002/003/005/006/007/008 can only be verified
+  once the app is deployed and a role-gated transition actually fires.
 - **TC-010 (Apps Script transition validation) / TC-011 (Slack failure): BLOCKED.** The GAS
   webhook/back-end is not deployed for this app yet.
 
@@ -120,68 +119,55 @@ PoC DB, so values were read via the AppSheet table view):
 
 ## 2026-07-13 (later) audit-logging build
 
-Status: audit logging implemented as AppSheet Automation bots (the in-app state transitions
-are done by Set-columns actions, so a bot that fires on status change is the correct place to
-append `db_approval_events`). One bot is complete; the second and a data-model fix remain.
+Status: **DONE.** Audit logging is implemented as two AppSheet Automation bots (the in-app state
+transitions are done by Set-columns actions, so a bot that fires on status change is the correct
+place to append `db_approval_events`). Both bots are built, saved, and error-free. The
+`db_approval_events` structure was regenerated in AppSheet by the owner so `target_type` and the
+`Ref` types are now present.
 
-### Built and saved
+### Bot 1 — `_audit_payment_event` (payments)
 
-- **Bot `_audit_payment_event`** (table `db_payments`, Data change type = Updates,
-  Condition `[_THISROW_BEFORE].[status_code] <> [_THISROW_AFTER].[status_code]`). One
-  "Run a data action → Add new rows to `db_approval_events`" step named `write_payment_event`
-  with these column mappings, all validated (green check) and saved without a bot error:
-  - `approval_event_id` = `UNIQUEID()`
-  - `payment_id` = `[payment_id]`
-  - `request_id` = `[request_id]`
-  - `actor_email` = `USEREMAIL()`
-  - `from_status` = `[_THISROW_BEFORE].[status_code]`
-  - `to_status` = `[status_code]`
-  - `created_at` = `NOW()`
+Table `db_payments`, Data change type = Updates, Condition
+`[_THISROW_BEFORE].[status_code] <> [_THISROW_AFTER].[status_code]`. One "Run a data action →
+Add new rows to `db_approval_events`" step (`write_payment_event`) with 8 column mappings, all
+validated and saved error-free:
 
-### Partially built
+- `approval_event_id` = `UNIQUEID()`
+- `target_type` = `"payment"`
+- `payment_id` = `[payment_id]`
+- `request_id` = `[request_id]`
+- `actor_email` = `USEREMAIL()`
+- `from_status` = `[_THISROW_BEFORE].[status_code]`
+- `to_status` = `[status_code]`
+- `created_at` = `NOW()`
 
-- **Bot `_audit_payment_event 2`** (the copy intended to become the budget-request audit bot).
-  Its **Event is correctly reconfigured**: table `db_requests`, Data change type = Updates,
-  Condition `[_THISROW_BEFORE].[budget_request_status] <> [_THISROW_AFTER].[budget_request_status]`.
-  Its **write step is NOT finalized**: the copied data action is still bound to `db_payments`
-  columns, so AppSheet reports *"Action 'write_payment_event Action - 2' cannot be used in this
-  process."* A copied data action cannot be retargeted to another table, so the step must be
-  rebuilt fresh (see remaining steps).
+### Bot 2 — `_audit_budget_request_event` (budget requests)
 
-### BLOCKER — AppSheet's cached structure for `db_approval_events` is stale (sheet headers are fine)
+Table `db_requests`, Data change type = Updates, Condition
+`[_THISROW_BEFORE].[budget_request_status] <> [_THISROW_AFTER].[budget_request_status]`. One
+"Run a data action → Add new rows to `db_approval_events`" step (`write_budget_event`) with 7
+column mappings, all validated and saved error-free:
 
-The **sheet headers are correct** — the `db_approval_events` tab has all 11 columns in the
-`COLUMN_CONFIG.md` order (confirmed by the owner: `approval_event_id, target_type, request_id,
-payment_id, actor_email, actor_role, action, from_status, to_status, comment, created_at`). The
-problem is that **AppSheet's cached table structure is stale**: it predates the current headers,
-so `target_type` does not appear in the column picker and `payment_id` was guessed as `Price`
-(the table has no data rows, so AppSheet guessed types). Nothing in the sheet needs changing.
+- `approval_event_id` = `UNIQUEID()`
+- `target_type` = `"budget_request"`
+- `request_id` = `[request_id]`
+- `actor_email` = `USEREMAIL()`
+- `from_status` = `[_THISROW_BEFORE].[budget_request_status]`
+- `to_status` = `[budget_request_status]`
+- `created_at` = `NOW()`
+- (no `payment_id` — budget-request events have none; they are distinguished by `target_type`)
 
-Fix (all in AppSheet, no sheet edit needed):
+### Notes / still open
 
-- **Data → `db_approval_events` → Regenerate Structure** so AppSheet re-reads the headers and
-  picks up `target_type`.
-- Then in the column editor set the types the empty table made AppSheet guess wrong:
-  `payment_id` → `Ref -> db_payments`, `request_id` → `Ref -> db_requests`, `target_type` → Enum
-  (`payment` / `budget_request`), `from_status`/`to_status`/`actor_role` → Enum,
-  `actor_email` → Email, `created_at` → DateTime (per `COLUMN_CONFIG.md`).
-
-### Remaining steps to finish audit logging
-
-1. **Regenerate `db_approval_events` structure in AppSheet** (the sheet headers are already
-   correct — do NOT edit the sheet). Data → `db_approval_events` → Regenerate Structure, then fix
-   the guessed column types (`payment_id`/`request_id` → Ref, `target_type` → Enum, etc.). This is
-   the prerequisite for everything below.
-2. **Finalize `_audit_payment_event`** by adding `target_type` = `"payment"` (and optionally
-   `actor_role`, `action`, `comment`) once the column exists, and confirm `payment_id` writes as
-   a Ref.
-3. **Rebuild the budget-request bot's write step.** Easiest: delete `_audit_payment_event 2`'s
-   broken step and add a fresh "Run a data action → Add new rows to `db_approval_events`" step
-   with: `approval_event_id`=`UNIQUEID()`, `request_id`=`[request_id]`, `target_type`=`"budget_request"`,
-   `actor_email`=`USEREMAIL()`, `from_status`=`[_THISROW_BEFORE].[budget_request_status]`,
-   `to_status`=`[budget_request_status]`, `created_at`=`NOW()`. (Its Event is already correct.)
-   Rename the bot to `_audit_budget_request_event`.
-4. Editor note: AppSheet native dropdown lists render below the ~783px screenshot viewport;
-   set a combobox by clicking it then typing the value + Return. Save to the server (top-right
-   SAVE / Ctrl+S) after each field — the expression-editor "Save" only updates the local draft,
-   which is lost on a connector reconnect.
+- Optional columns not set on either bot: `actor_role`
+  (`LOOKUP(USEREMAIL(),"db_users","user_email","role_code")`), `action`, `comment`. Add later if
+  the audit trail needs them; the who/what/when/from→to core is captured.
+- The bots fire on status change, so they cannot be exercised until the app is deployed and a
+  role-gated transition actually runs. Confirm one `db_approval_events` row lands per transition
+  during the deployed end-to-end test run (TC-001/002/003/005/006/007/008 audit assertions).
+- Editor note for future AppSheet work: native dropdown lists render below the ~783px screenshot
+  viewport; set a combobox by clicking it then typing the value + Return. Save to the server
+  (top-right SAVE / Ctrl+S) after each field — the expression-editor "Save" only updates the
+  local draft, which is lost on a connector reconnect. Do NOT copy a bot to retarget it to
+  another table: a copied data action stays bound to the original table and cannot be reused;
+  build the second bot's write step fresh instead.

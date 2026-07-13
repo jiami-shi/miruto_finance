@@ -42,7 +42,7 @@ Current scope:
 - configure budget approval queues: done (individual/recurring business, recurring executive)
 - configure finance confirmation queue: done
 - configure exceptional payment queues: done (exception business, exception executive)
-- append approval events: partial — payment audit bot built; budget-request bot needs step rebuild; blocked on `db_approval_events` schema fix (see `TEST_RUN.md`)
+- append approval events: done — two audit bots (`_audit_payment_event`, `_audit_budget_request_event`) append `db_approval_events` on each status change (see `TEST_RUN.md`)
 - create and process Slack notification jobs: local Apps Script code exists, needs state model update + deploy
 - verify budget category warning: pending
 

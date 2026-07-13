@@ -15,13 +15,12 @@ computation. See `TEST_RUN.md`.
 
 Still open before a full green test run (all tracked in `TEST_RUN.md`):
 
-1. `db_approval_events` audit logging — implemented as Automation bots, PARTIALLY done. The
-   payment bot (`_audit_payment_event`) is built and saved; the budget-request bot's Event is
-   configured but its write step needs a rebuild. BLOCKED on regenerating AppSheet's stale
-   cached structure for `db_approval_events` (the sheet headers are correct; AppSheet just needs
-   Data → Regenerate Structure + type fixes). Full details
-   and the exact remaining steps are in the `2026-07-13 (later) audit-logging build` section of
-   `TEST_RUN.md`.
+1. `db_approval_events` audit logging — DONE. Two Automation bots built, saved, and error-free:
+   `_audit_payment_event` (db_payments, `target_type="payment"`) and `_audit_budget_request_event`
+   (db_requests, `target_type="budget_request"`); each appends an audit row on a status change.
+   The `db_approval_events` structure was regenerated in AppSheet so `target_type`/Ref types
+   exist. Field mappings are in the `2026-07-13 (later) audit-logging build` section of
+   `TEST_RUN.md`. (Only verifiable end-to-end once the app is deployed and a transition fires.)
 2. PoC seed data is not test-ready: nearly all requests have `approved_amount_tax_excluded`
    = ¥0, so every payment computes `has_payment_exception` = TRUE. No non-exceptional
    payment exists, blocking TC-005.
@@ -115,9 +114,8 @@ removed from `db_payments`, slices/views/actions rebuilt from `UX_CONFIG.md`.
 
 Remaining:
 
-1. Finish `db_approval_events` audit logging: fix the sheet-tab schema (prerequisite), then
-   finalize the payment bot and rebuild the budget-request bot's write step. Exact steps are in
-   `TEST_RUN.md` → `2026-07-13 (later) audit-logging build`.
+1. `db_approval_events` audit logging — DONE (both bots built and saved). Nothing left except
+   verifying it end-to-end during the deployed test run.
 2. Curate PoC seed data so it is test-ready (non-zero request approved amounts; ≥1 payment
    within budget for the normal finance path; ≥1 recurring payment outside its valid period).
 3. Update Apps Script state-transition logic to use the two separate state machines, then
