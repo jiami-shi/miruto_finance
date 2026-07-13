@@ -148,28 +148,30 @@ append `db_approval_events`). One bot is complete; the second and a data-model f
   process."* A copied data action cannot be retargeted to another table, so the step must be
   rebuilt fresh (see remaining steps).
 
-### BLOCKER — `db_approval_events` schema in the PoC DB does not match `COLUMN_CONFIG.md`
+### BLOCKER — AppSheet's cached structure for `db_approval_events` is stale (sheet headers are fine)
 
-While mapping the columns, AppSheet's detected schema for `db_approval_events` was found to be
-wrong, which prevents audit logging from actually functioning even for the completed bot:
+The **sheet headers are correct** — the `db_approval_events` tab has all 11 columns in the
+`COLUMN_CONFIG.md` order (confirmed by the owner: `approval_event_id, target_type, request_id,
+payment_id, actor_email, actor_role, action, from_status, to_status, comment, created_at`). The
+problem is that **AppSheet's cached table structure is stale**: it predates the current headers,
+so `target_type` does not appear in the column picker and `payment_id` was guessed as `Price`
+(the table has no data rows, so AppSheet guessed types). Nothing in the sheet needs changing.
 
-- **`target_type` column is missing** — it is in `COLUMN_CONFIG.md` (Enum) but does not appear
-  in AppSheet's column picker for the table, so it could not be set. Payment-vs-budget events
-  are currently only distinguishable by whether `payment_id` is populated.
-- **`payment_id` is typed `Price`** in AppSheet, but the spec is `Ref -> db_payments`. Writing a
-  text key like `pay_PAY-T742` into a Price column will not store correctly at runtime.
-- `request_id` is likewise expected to be `Ref -> db_requests`; verify its detected type too.
+Fix (all in AppSheet, no sheet edit needed):
 
-Root cause: the PoC DB `db_approval_events` tab was never built out per `COLUMN_CONFIG.md`
-(headers/types incomplete), so AppSheet guessed types from empty/partial data. The Google
-Sheets connector has no permission on this PoC DB (403), so this must be fixed by the owner in
-the sheet, then regenerated in AppSheet (Data → `db_approval_events` → Regenerate Structure).
+- **Data → `db_approval_events` → Regenerate Structure** so AppSheet re-reads the headers and
+  picks up `target_type`.
+- Then in the column editor set the types the empty table made AppSheet guess wrong:
+  `payment_id` → `Ref -> db_payments`, `request_id` → `Ref -> db_requests`, `target_type` → Enum
+  (`payment` / `budget_request`), `from_status`/`to_status`/`actor_role` → Enum,
+  `actor_email` → Email, `created_at` → DateTime (per `COLUMN_CONFIG.md`).
 
 ### Remaining steps to finish audit logging
 
-1. **Fix the `db_approval_events` sheet tab** to match `COLUMN_CONFIG.md` (all 11 columns incl.
-   `target_type`; `payment_id`/`request_id` as `Ref`), then regenerate the table structure in
-   AppSheet. This is the prerequisite for everything below.
+1. **Regenerate `db_approval_events` structure in AppSheet** (the sheet headers are already
+   correct — do NOT edit the sheet). Data → `db_approval_events` → Regenerate Structure, then fix
+   the guessed column types (`payment_id`/`request_id` → Ref, `target_type` → Enum, etc.). This is
+   the prerequisite for everything below.
 2. **Finalize `_audit_payment_event`** by adding `target_type` = `"payment"` (and optionally
    `actor_role`, `action`, `comment`) once the column exists, and confirm `payment_id` writes as
    a Ref.

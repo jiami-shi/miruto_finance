@@ -17,8 +17,9 @@ Still open before a full green test run (all tracked in `TEST_RUN.md`):
 
 1. `db_approval_events` audit logging — implemented as Automation bots, PARTIALLY done. The
    payment bot (`_audit_payment_event`) is built and saved; the budget-request bot's Event is
-   configured but its write step needs a rebuild. BLOCKED on a `db_approval_events` schema fix
-   in the PoC DB (missing `target_type`, `payment_id` mistyped as Price not Ref). Full details
+   configured but its write step needs a rebuild. BLOCKED on regenerating AppSheet's stale
+   cached structure for `db_approval_events` (the sheet headers are correct; AppSheet just needs
+   Data → Regenerate Structure + type fixes). Full details
    and the exact remaining steps are in the `2026-07-13 (later) audit-logging build` section of
    `TEST_RUN.md`.
 2. PoC seed data is not test-ready: nearly all requests have `approved_amount_tax_excluded`
