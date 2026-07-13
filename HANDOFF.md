@@ -15,7 +15,12 @@ computation. See `TEST_RUN.md`.
 
 Still open before a full green test run (all tracked in `TEST_RUN.md`):
 
-1. `db_approval_events` audit-logging grouped actions — intentionally deferred; not built.
+1. `db_approval_events` audit logging — implemented as Automation bots, PARTIALLY done. The
+   payment bot (`_audit_payment_event`) is built and saved; the budget-request bot's Event is
+   configured but its write step needs a rebuild. BLOCKED on a `db_approval_events` schema fix
+   in the PoC DB (missing `target_type`, `payment_id` mistyped as Price not Ref). Full details
+   and the exact remaining steps are in the `2026-07-13 (later) audit-logging build` section of
+   `TEST_RUN.md`.
 2. PoC seed data is not test-ready: nearly all requests have `approved_amount_tax_excluded`
    = ¥0, so every payment computes `has_payment_exception` = TRUE. No non-exceptional
    payment exists, blocking TC-005.
@@ -109,8 +114,9 @@ removed from `db_payments`, slices/views/actions rebuilt from `UX_CONFIG.md`.
 
 Remaining:
 
-1. Add grouped AppSheet actions that append `db_approval_events` and wrap each of the 9
-   state-transition actions (deferred).
+1. Finish `db_approval_events` audit logging: fix the sheet-tab schema (prerequisite), then
+   finalize the payment bot and rebuild the budget-request bot's write step. Exact steps are in
+   `TEST_RUN.md` → `2026-07-13 (later) audit-logging build`.
 2. Curate PoC seed data so it is test-ready (non-zero request approved amounts; ≥1 payment
    within budget for the normal finance path; ≥1 recurring payment outside its valid period).
 3. Update Apps Script state-transition logic to use the two separate state machines, then
