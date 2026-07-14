@@ -2,6 +2,22 @@
 
 ## Current State
 
+**2026-07-14 UX pass (submission form + budget dashboard):**
+- **Submission form (`予算を申請`)** — new Form view on `db_requests` (Primary Nav). Enabled
+  Adds on the table. Pruned to requester fields; `requester_email` auto-fills `USEREMAIL()`.
+  System columns (`budget_request_status`, `current_role`, `approved_at`, `updated_at`) stay
+  **editable** (the approval Set-columns actions write them) but are hidden from the form via
+  **Show?=off** — setting them non-editable breaks those actions ("data action cannot modify
+  column"). `budget_request_status` initial value routes new rows to the business queue. Verified
+  a live submission saves and lands in `business_approval_pending`.
+- **Budget dashboard (`予算残高`)** — table view on `db_budgets` (Menu Nav) showing
+  allocated/used/pending/remaining. Added virtual column `burn_rate` (Percent):
+  `IF([allocated_amount]=0,0,DECIMAL([used_amount])/[allocated_amount])` — the `DECIMAL()` is
+  required, integer/integer truncates to 0. Added format rule `予算超過アラート`
+  (`[burn_rate]>=1` → highlights used/remaining/burn_rate red).
+- **Still owner's to do:** Japanese Display names on fields (labels). Edit AppSheet single-user
+  to avoid "newer version" save conflicts.
+
 Milestone 2 PoC build: AppSheet app structure is complete. As of 2026-07-13 the
 `newtfinance-599014119` app has, verified error-free at build time:
 
