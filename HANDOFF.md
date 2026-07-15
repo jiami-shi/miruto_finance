@@ -2,6 +2,26 @@
 
 ## Current State
 
+**2026-07-14 (later) go-live gaps + payment intake & notifications (in-app path):**
+- **Two real blockers surfaced by a GAS audit:** (a) `ImportService.gs` — all four import
+  functions are `throw` stubs, so nothing flows in from the source sheets (budget requests can
+  be hand-entered now; **payments had no intake at all**). (b) The GAS `ApprovalService` /
+  `NotificationService` / `SlackService` are **not wired to any trigger or webhook** (no
+  `doPost`, no `ScriptApp.newTrigger`, `createSlackJob` has no caller) — they are dead code
+  relative to the live in-app approval flow, so approvers were never notified.
+- **Payment intake form `支払を登録`** — new Form view on `db_payments` (Adds enabled). New
+  payments default `status_code="finance_check_pending"` (Show=off) so they land in the finance
+  queue. TODO: set `payment_id` (key) editable=off.
+- **Notifications — two native AppSheet email bots** (separate from the audit bots):
+  `notify_payment_pending` (db_payments) and `notify_request_pending` (db_requests). Each fires
+  on a status change into a pending state and emails the responsible role, resolved via
+  `SELECT(db_users[user_email], [role_code] = SWITCH(<status>, ...))`. Subjects are
+  `【要承認】…: <<[title]>>`. Emails need the app **deployed** and `db_users` populated with real
+  role emails to actually send. This deliberately avoids the GAS notification path.
+- **Still to do for go-live:** implement/keep-manual the payment import; deploy + real users;
+  run the TC-001–011 acceptance pass; decide whether to retire or wire the GAS approval/notify
+  code; validate the category mapping.
+
 **2026-07-14 UX pass (submission form + budget dashboard):**
 - **Submission form (`予算を申請`)** — new Form view on `db_requests` (Primary Nav). Enabled
   Adds on the table. Pruned to requester fields; `requester_email` auto-fills `USEREMAIL()`.
