@@ -12,12 +12,15 @@
 - **Payment intake form `支払を登録`** — new Form view on `db_payments` (Adds enabled). New
   payments default `status_code="finance_check_pending"` (Show=off) so they land in the finance
   queue. TODO: set `payment_id` (key) editable=off.
-- **Notifications — two native AppSheet email bots** (separate from the audit bots):
+- **Notifications — two AppSheet bots posting to Slack** (separate from the audit bots):
   `notify_payment_pending` (db_payments) and `notify_request_pending` (db_requests). Each fires
-  on a status change into a pending state and emails the responsible role, resolved via
-  `SELECT(db_users[user_email], [role_code] = SWITCH(<status>, ...))`. Subjects are
-  `【要承認】…: <<[title]>>`. Emails need the app **deployed** and `db_users` populated with real
-  role emails to actually send. This deliberately avoids the GAS notification path.
+  on a status change into a pending state and runs a **Call-a-webhook** task: `POST` JSON
+  `{"text":"【要承認】…: <<[title]>>（<<[status]>>）…"}` to a Slack Incoming Webhook. The
+  webhook posts to one channel, so the message text (title + status) tells the team who should
+  act. **The webhook Url is a placeholder** (`…/PASTE-YOUR-SLACK-WEBHOOK-URL-HERE`) — replace it
+  in Automation → bot → step → Call a webhook → Url with the real Slack webhook (the same secret
+  that lives in the GAS Script Properties). Leaving the Url blank makes AppSheet flag a
+  "webhook Url missing" error, hence the placeholder. This deliberately avoids the GAS path.
 - **Still to do for go-live:** implement/keep-manual the payment import; deploy + real users;
   run the TC-001–011 acceptance pass; decide whether to retire or wire the GAS approval/notify
   code; validate the category mapping.
