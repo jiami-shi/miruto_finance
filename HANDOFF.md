@@ -2,6 +2,32 @@
 
 ## Current State
 
+**2026-07-15 form polish + queue display fix + JPY currency:**
+- **Budget-queue blank-deck bug fixed.** The `個別予算 事業承認キュー` and `定常予算 役員承認キュー`
+  deck views (on `db_requests`) had Primary/Secondary/Summary headers pointing at **payment**
+  columns (`payment_title` / `vendor_name` / `payment_amount_tax_excluded`) — none exist on
+  `db_requests`, so every deck row rendered blank. Repointed all three to
+  `request_title` / `requester_name` / `approved_amount_tax_excluded`. `定常予算 事業承認キュー`
+  used Auto-assign (already showed `request_title`); set its Secondary/Summary to match for
+  consistency. Root cause: those two views were cloned from a payment-queue template.
+- **Requester auto-fill (both forms).** `db_requests.requester_name` and
+  `db_payments.requester_name` now have App formula
+  `LOOKUP(USEREMAIL(),"db_users","user_email","display_name")` (type → Name), so the 申請者 is
+  auto-derived and read-only. `requester_email` already auto-filled `USEREMAIL()`.
+- **payment_method → Enum** (`db_payments`): 銀行振込 / クレジットカード / 口座振替 / 現金 / その他,
+  "Allow other values" off → clean dropdown.
+- **Currency = JPY/USD only.** `db_requests.currency` Enum values are now just `JPY`,`USD`
+  (Initial value `"JPY"`). `db_payments.currency` App formula `[request_id].[currency]` inherits
+  from the linked budget request (read-only). All amounts are JPY-based.
+- **`$`→`¥` fix.** The two Price columns (`db_requests.approved_amount_tax_excluded`,
+  `db_payments.payment_amount_tax_excluded`) had Currency symbol `$`; set to `¥`. NB: the
+  `db_budgets` dashboard amounts are type **Number** (no symbol), so they never showed `$`.
+- **STILL TODO — budget-request comment field.** User wants a 備考/コメント field on the budget
+  request form. `db_requests` has **no** `comment` column (26 cols, ends at `Related db_payments`).
+  The user must add a `comment` column to the `db_requests` tab in the PoC DB sheet, then
+  Data → Regenerate structure, then set it Show?=on / editable on the `予算を申請` form. (Google
+  Sheets MCP has no access to this PoC DB, so the agent cannot add the column.)
+
 **2026-07-14 (later) go-live gaps + payment intake & notifications (in-app path):**
 - **Two real blockers surfaced by a GAS audit:** (a) `ImportService.gs` — all four import
   functions are `throw` stubs, so nothing flows in from the source sheets (budget requests can
