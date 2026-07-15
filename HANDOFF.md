@@ -15,8 +15,11 @@
   `IF([allocated_amount]=0,0,DECIMAL([used_amount])/[allocated_amount])` — the `DECIMAL()` is
   required, integer/integer truncates to 0. Added format rule `予算超過アラート`
   (`[burn_rate]>=1` → highlights used/remaining/burn_rate red).
-- **Still owner's to do:** Japanese Display names on fields (labels). Edit AppSheet single-user
-  to avoid "newer version" save conflicts.
+- **Japanese field labels (done):** Display names set on all user-visible columns across
+  `db_requests`, `db_budgets`, `db_payments` (form, dashboard, and queues verified rendering
+  Japanese in-app). Fastest method: click the grid's DISPLAY NAME cell → type a quoted literal
+  `"日本語"` → Save; chain ~4 fields per pass. Skipped: table keys, `Show?=off` technical
+  columns, and auto-generated `Related_*` reverse-ref columns (still English, low priority).
 
 Milestone 2 PoC build: AppSheet app structure is complete. As of 2026-07-13 the
 `newtfinance-599014119` app has, verified error-free at build time:
