@@ -5,6 +5,7 @@ const SCHEMA = {
     'source_no',
     'request_type',
     'request_title',
+    'comment',
     'requester_email',
     'requester_name',
     'department',
@@ -82,6 +83,7 @@ const SHEETS = {
   USERS: 'db_users',
   APPROVAL_RULES: 'db_approval_rules',
   APPROVAL_EVENTS: 'db_approval_events',
+  MONTHLY_REPORT_EXPORT: 'gen_支払月報',
   NOTIFICATIONS: 'db_notifications',
   ERROR_LOG: 'db_error_log',
 };

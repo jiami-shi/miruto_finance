@@ -17,6 +17,6 @@ function makeBudgetId_(value) {
 
 function parseAmount_(value) {
   if (typeof value === 'number') return value;
-  const cleaned = String(value || '').replace(/[¥,\s]/g, '');
+  const cleaned = String(value || '').replace(/[¥￥,\s]/g, '');
   return cleaned ? Number(cleaned) : 0;
 }

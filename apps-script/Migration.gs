@@ -56,7 +56,13 @@ function writeSheet_(sheet, headers, objects) {
 }
 
 function mapBudgetCategory_(sourceLabel) {
-  return SOURCE_CATEGORY_TO_BUDGET_CATEGORY_[sourceLabel] || 'expense';
+  const label = String(sourceLabel || '');
+  if (SOURCE_CATEGORY_TO_BUDGET_CATEGORY_[label]) return SOURCE_CATEGORY_TO_BUDGET_CATEGORY_[label];
+  if (/開発/.test(label)) return 'development';
+  if (/原価|仕入|製造|配送|決済手数料|物流/.test(label)) return 'cogs';
+  if (/広告|販促|PR|アフィリエイト|インフルエンサー/.test(label)) return 'advertising';
+  if (/管理|家賃|人件費|委託|ツール|サーバー|PF手数料/.test(label)) return 'management';
+  return 'expense';
 }
 
 function migrateRequests_() {

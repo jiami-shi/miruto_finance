@@ -2,6 +2,33 @@
 
 ## Current State
 
+**2026-07-17 minimal workflow cleanup + monthly report simplification:**
+- **Removed unused monthly-report cache.** `db_monthly_report_rows` had no consumer; report generation now writes only to `gen_支払月報` from `db_payments` + `db_requests`. The live `db_monthly_report_rows` tab was deleted.
+- **Monthly report generation path.** `generateMonthlyReport()` filters `db_payments` to `status_code="payment_approved"` and `payment_method` in `振込前払い` / `翌月末払い`, appends screenshot-shaped rows to `gen_支払月報`, and de-dupes by exported `支払いNo`.
+- **Removed PoC-only code.** Deleted `Seed.gs` and `EvidenceFile.gs`; `Seed.gs` was producing `[TEST]` rows and `EvidenceFile.gs` was a one-time migration helper for a column that already exists.
+- **Cleaned live test data.** Removed `[TEST]` rows from `db_requests` / `db_payments`. Current live DB has 7 real `payment_approved + 翌月末払い` rows and no `銀行振込` report candidates.
+- **Apps Script pushed.** `clasp push -f` succeeded with 14 `.gs` files. `clasp run generateMonthlyReport` is still blocked by Apps Script execution permission, so generation must be run once from the Apps Script UI to authorize.
+- **Current workflow status:** budget/payment data exists and monthly report output is populated from real approved payments. The minimum data path is usable, but full go-live is not green until AppSheet role-path testing and Apps Script authorization are completed.
+
+Workflow status as of this handoff:
+
+```text
+source sheets / AppSheet forms
+  -> db_requests / db_payments
+  -> AppSheet approval status changes
+  -> db_budgets / db_budget_categories visible for budget status
+  -> generateMonthlyReport()
+  -> gen_支払月報
+```
+
+Still not enough for go-live:
+
+1. Run a real AppSheet role test: business approver, executive approver, finance reviewer.
+2. Verify AppSheet audit bots append `db_approval_events` on every status change.
+3. Run `generateMonthlyReport()` from Apps Script UI once and authorize script execution.
+4. Replace placeholder Slack webhook if AppSheet notification bots are still desired.
+5. Decide whether GAS approval functions are kept as manual/admin tools or fully retired in favor of AppSheet actions.
+
 **2026-07-15 form polish + queue display fix + JPY currency:**
 - **Budget-queue blank-deck bug fixed.** The `個別予算 事業承認キュー` and `定常予算 役員承認キュー`
   deck views (on `db_requests`) had Primary/Secondary/Summary headers pointing at **payment**

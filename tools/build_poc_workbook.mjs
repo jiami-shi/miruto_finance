@@ -12,6 +12,7 @@ const sheets = {
     "source_no",
     "request_type",
     "request_title",
+    "comment",
     "requester_email",
     "requester_name",
     "department",

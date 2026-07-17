@@ -98,11 +98,13 @@ function applyTransition_(args) {
   const now = nowIso_();
   const patch = {
     current_role: rule.next_role,
-    action_comment: '',
     updated_at: now,
   };
   patch[args.statusField] = rule.to_status;
-  if (args.targetType === 'payment') patch.last_action_at = now;
+  if (args.targetType === 'payment') {
+    patch.action_comment = '';
+    patch.last_action_at = now;
+  }
 
   updateObjectByKey_(args.sheetName, args.keyField, args.keyValue, patch);
 
