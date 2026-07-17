@@ -72,13 +72,19 @@ their role, and requesters see payments linked to their own budget requests.
 ### `db_approval_events`
 
 ```appsheet
-OR(
-  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "admin",
-  [actor_email] = USEREMAIL()
+IN(
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code"),
+  LIST(
+    "business_approver",
+    "executive_approver",
+    "finance_reviewer",
+    "admin"
+  )
 )
 ```
 
-Use broader event visibility only if approvers need to inspect full history.
+Approval, finance, and admin roles can inspect the full audit history. Requesters do not
+receive the audit table through this filter.
 
 ## 5. Build Sequence
 

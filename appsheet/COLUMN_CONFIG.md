@@ -141,9 +141,9 @@ Put `role_code` options in `Type details > Values`, not in `App formula`.
 | column | type | key | label | show | editable | required | app formula | initial value |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `_RowNumber` | Number | off | off | off | off | off | empty | empty |
-| `request_id` | Text | on | off | on | off | on | empty | `UNIQUEID()` only for AppSheet-created rows |
-| `source_sheet_name` | Text | off | off | on | off | on | empty | empty |
-| `source_no` | Text | off | off | on | off | on | empty | empty |
+| `request_id` | Text | on | off | off | off | on | empty | `UNIQUEID()` only for AppSheet-created rows |
+| `source_sheet_name` | Text | off | off | off | off | on | empty | empty |
+| `source_no` | Text | off | off | off | off | on | empty | empty |
 | `request_type` | Enum | off | off | on | on | on | empty | empty |
 | `request_title` | Text | off | on | on | on | on | empty | empty |
 | `requester_email` | Email | off | off | on | off | off | empty | `USEREMAIL()` for AppSheet-created rows |
@@ -157,14 +157,14 @@ Put `role_code` options in `Type details > Values`, not in `App formula`.
 | `valid_from` | Date | off | off | on | on | required-if below | empty | empty |
 | `valid_to` | Date | off | off | on | on | required-if below | empty | empty |
 | `budget_request_status` | Enum | off | off | on | off | on | empty | `submitted` |
-| `current_role` | Enum | off | off | on | off | off | empty | `business_approver` |
-| `hd_budget_ref` | Text | off | off | on | on | off | empty | empty |
-| `budget_id` | Ref -> `db_budgets` | off | off | on | on | off | empty | empty |
-| `source_url` | URL | off | off | on | off | off | empty | empty |
-| `created_at` | DateTime | off | off | on | off | on | empty | `NOW()` |
-| `submitted_at` | DateTime | off | off | on | off | off | empty | `NOW()` |
-| `approved_at` | DateTime | off | off | on | off | off | empty | empty |
-| `updated_at` | DateTime | off | off | on | off | on | empty | `NOW()` |
+| `current_role` | Enum | off | off | off | off | off | empty | `business_approver` |
+| `hd_budget_ref` | Text | off | off | off | on | off | empty | empty |
+| `budget_id` | Ref -> `db_budgets` | off | off | off | on | off | empty | empty |
+| `source_url` | URL | off | off | off | off | off | empty | empty |
+| `created_at` | DateTime | off | off | off | off | on | empty | `NOW()` |
+| `submitted_at` | DateTime | off | off | off | off | off | empty | `NOW()` |
+| `approved_at` | DateTime | off | off | off | off | off | empty | empty |
+| `updated_at` | DateTime | off | off | off | off | on | empty | `NOW()` |
 
 Required-if for `valid_from` and `valid_to`:
 
@@ -179,28 +179,28 @@ Configure this before `db_approval_events`.
 | column | type | key | label | show | editable | required | app formula | initial value |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `_RowNumber` | Number | off | off | off | off | off | empty | empty |
-| `payment_id` | Text | on | off | on | off | on | empty | empty |
+| `payment_id` | Text | on | off | off | off | on | empty | empty |
 | `request_id` | Ref -> `db_requests` | off | off | on | on | on | empty | empty |
-| `payment_no` | Text | off | on | on | off | on | empty | empty |
+| `payment_no` | Text | off | on | off | off | on | empty | empty |
 | `payment_title` | Text | off | off | on | on | on | empty | empty |
 | `requester_name` | Text | off | off | on | off | off | empty | empty |
 | `payment_method` | Text | off | off | on | on | on | empty | empty |
 | `vendor_name` | Text | off | off | on | on | off | empty | empty |
-| `source_payment_status` | Text | off | off | on | off | off | empty | empty |
+| `source_payment_status` | Text | off | off | off | off | off | empty | empty |
 | `scheduled_payment_date` | Date | off | off | on | on | off | empty | empty |
 | `payment_amount_tax_excluded` | Price | off | off | on | on | on | empty | empty |
 | `currency` | Enum | off | off | on | on | on | empty | `JPY` |
 | `evidence_url` | URL | off | off | on | on | off | empty | empty |
 | `memo` | LongText | off | off | on | on | off | empty | empty |
-| `business_request_no` | Text | off | off | on | off | off | empty | empty |
-| `hd_budget_ref` | Text | off | off | on | off | off | empty | empty |
-| `budget_id` | Ref -> `db_budgets` | off | off | on | off | off | `[request_id].[budget_id]` | empty |
+| `business_request_no` | Text | off | off | off | off | off | empty | empty |
+| `hd_budget_ref` | Text | off | off | off | off | off | empty | empty |
+| `budget_id` | Ref -> `db_budgets` | off | off | off | off | off | `[request_id].[budget_id]` | empty |
 | `status_code` | Enum | off | off | on | off | on | empty | `payment_submitted` |
-| `current_role` | Enum | off | off | on | off | on | empty | `finance_reviewer` |
+| `current_role` | Enum | off | off | off | off | on | empty | `finance_reviewer` |
 | `action_comment` | LongText | off | off | on | on | off | empty | empty |
-| `last_action_at` | DateTime | off | off | on | off | off | empty | empty |
-| `created_at` | DateTime | off | off | on | off | on | empty | `NOW()` |
-| `updated_at` | DateTime | off | off | on | off | on | empty | `NOW()` |
+| `last_action_at` | DateTime | off | off | off | off | off | empty | empty |
+| `created_at` | DateTime | off | off | off | off | on | empty | `NOW()` |
+| `updated_at` | DateTime | off | off | off | off | on | empty | `NOW()` |
 
 Do not add editable `cost_category` to `db_payments`. If it already exists, set `Show=off`, `Editable=off`, `Required=off`.
 
@@ -259,10 +259,10 @@ Audit table. Do not expose as an editable form to normal users.
 | column | type | key | label | show | editable | required | app formula | initial value |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `_RowNumber` | Number | off | off | off | off | off | empty | empty |
-| `approval_event_id` | Text | on | off | on | off | on | empty | `UNIQUEID()` |
+| `approval_event_id` | Text | on | off | off | off | on | empty | `UNIQUEID()` |
 | `target_type` | Enum | off | off | on | off | on | empty | empty |
-| `request_id` | Ref -> `db_requests` | off | off | on | off | off | empty | empty |
-| `payment_id` | Ref -> `db_payments` | off | on | on | off | off | empty | empty |
+| `request_id` | Ref -> `db_requests` | off | off | off | off | off | empty | empty |
+| `payment_id` | Ref -> `db_payments` | off | on | off | off | off | empty | empty |
 | `actor_email` | Email | off | off | on | off | on | empty | `USEREMAIL()` |
 | `actor_role` | Enum | off | off | on | off | on | empty | `LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")` |
 | `action` | Enum | off | off | on | off | on | empty | empty |
@@ -270,6 +270,23 @@ Audit table. Do not expose as an editable form to normal users.
 | `to_status` | Enum | off | off | on | off | on | empty | empty |
 | `comment` | LongText | off | off | on | off | off | empty | empty |
 | `created_at` | DateTime | off | off | on | off | on | empty | `NOW()` |
+
+Display names:
+
+| column | display name |
+| --- | --- |
+| `target_type` | `対象種別` |
+| `actor_email` | `実行者` |
+| `actor_role` | `役割` |
+| `action` | `操作` |
+| `from_status` | `変更前` |
+| `to_status` | `変更後` |
+| `comment` | `コメント` |
+| `created_at` | `日時` |
+
+Use `ステータス` as the display name for `db_requests.budget_request_status` and
+`db_payments.status_code`. Hide generated `Related *` reverse-reference columns from
+normal views unless a specific detail view needs one.
 
 If AppSheet shows `Invalid dereference`, fix the referenced column type first. Dereference only works on `Ref` columns.
 

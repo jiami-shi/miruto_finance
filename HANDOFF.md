@@ -335,3 +335,27 @@ Update this file at the end of every milestone and whenever a major assumption c
   month. After generation, fill its empty amount and required payment fields in AppSheet,
   submit it, finance-approve it, and confirm one audit event plus the recurring consumed
   amount update.
+
+# 2026-07-17 audit visibility and Japanese labels
+
+- The raw `db_approval_events` sheet currently contains only three audit rows, all written
+  by `jiamin_shi@reazon.jp`. This proves the missing approvals are not only an AppSheet
+  visibility issue. Real signed-in role accounts must perform the acceptance test; Preview
+  as another user is not sufficient evidence that Automation ran.
+- Updated the live `db_approval_events` security filter so
+  `business_approver`, `executive_approver`, `finance_reviewer`, and `admin` can read the
+  full audit history.
+- Created the menu table view `承認履歴`, sorted by `created_at` descending.
+- Hid `approval_event_id`, `request_id`, and `payment_id`; added Japanese display names for
+  the eight business-facing audit fields.
+- Hid the requested technical columns on `db_requests` and `db_payments`, including the
+  generated `Related db_payments` column on requests. The two status columns remain visible
+  as `ステータス`.
+- Both `_audit_payment_event` and `_audit_budget_request_event` are enabled. The AppSheet
+  editor reports `No issues found`, and the preview shows the three audit rows newest first.
+- Two enabled notification placeholders remain: `New Bot` (`notify_payment_pending`) and
+  `New Bot 2`. Their steps are still named `New step`; confirm whether they should be
+  completed or deleted before notification go-live.
+- Remaining acceptance test: use real signed-in business, executive, and finance accounts
+  to perform one state change each, then confirm each action appends exactly one row with
+  the correct actor and status transition.

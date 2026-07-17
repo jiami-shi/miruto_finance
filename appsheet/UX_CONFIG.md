@@ -122,6 +122,15 @@ Payment views:
 | `異常支払 事業承認キュー` | `slice_exception_business_queue` | Deck | Primary |
 | `異常支払 役員承認キュー` | `slice_exception_executive_queue` | Deck | Primary |
 
+Audit view:
+
+| view | data | type | position | sort |
+| --- | --- | --- | --- | --- |
+| `承認履歴` | `db_approval_events` | Table | Menu | `created_at` descending |
+
+The audit view is visible only to roles allowed by the `db_approval_events` security
+filter. Keep the generated audit form out of normal navigation.
+
 For `slice_my_payment_history` and `slice_recurring_payment_drafts`, keep Updates enabled
 but disable Adds and Deletes. New payments must use the dedicated `支払を登録` form.
 
