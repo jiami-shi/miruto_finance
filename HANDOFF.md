@@ -28,6 +28,62 @@ Still not enough for go-live:
 3. Replace placeholder Slack webhook if AppSheet notification bots are still desired.
 4. Decide whether GAS approval functions are kept as manual/admin tools or fully retired in favor of AppSheet actions.
 
+**2026-07-16 deployed-app UX, copy feature, P0 security, monthly-payment-draft spec:**
+- **Landing page fixed (root cause).** App opened to an empty `db_approval_events_Detail`
+  ("No items selected"). Root cause: **Settings → Views → General → Starting view was set to
+  `db_approval_events_Detail`** (auto-set during the audit-bot build). Changed to **`ホーム`**.
+  Also the `newshortcut/<appId>` link is mobile-install only (blank on desktop); the browser link
+  is `start/<appId>`.
+- **New home `ホーム` (dashboard, position first, ungated).** Two view entries: `予算残高`
+  (db_budgets) + `カテゴリ別消化` (db_budget_categories). Everyone lands here (finance lands on
+  their queue since it's the first visible gated view; nobody hits the audit detail anymore).
+- **Category consumption — decision = 方案B (real-time aggregation), NOT the static
+  db_budget_categories.** User wants the app self-contained (no dependency on the monthly
+  `Sum_予算管理状況` import). TODO: replace `カテゴリ別消化` with a view/agg that sums by
+  `budget_category_code` from db_requests (approved) / db_payments (actual). (Also the current
+  db_budget_categories Price cols still show `$` — moot once 方案B replaces it.)
+- **Copy-to-resubmit feature (budget side DONE; payment side pending).**
+  - `slice_my_requests` = `[requester_email]=USEREMAIL()`; view `自分の予算申請` (table, menu) =
+    "see your own past budget requests".
+  - Action `コピーして再申請` on db_requests, type App:go-to-view, Prominent,
+    Target `LINKTOFORM("予算を申請", "request_type",[request_type], "request_title",[request_title],
+    "department",[department], "product_name",[product_name],
+    "source_category_label",[source_category_label],
+    "approved_amount_tax_excluded",[approved_amount_tax_excluded], "currency",[currency],
+    "valid_from",[valid_from], "valid_to",[valid_to], "comment",[comment])` (validated green).
+    → opens a prefilled 予算を申請 form; edit → submit = new row. TODO: replicate for db_payments
+    (`slice_my_payments`, view `自分の支払`, action → `LINKTOFORM("支払を登録", …)`); note
+    db_payments has NO `requester_email` (only `requester_name`).
+- **P0 for production (Security Filters + edit-lock) — done by user via editor.**
+  - Security Filters (Settings → Security): db_requests `OR([requester_email]=USEREMAIL(),
+    IN(LOOKUP(USEREMAIL(),"db_users","user_email","role_code"),
+    LIST("business_approver","executive_approver","finance_reviewer","admin")))`;
+    db_payments same but `[requester_name]=LOOKUP(...display_name) OR [requester_name]=USEREMAIL()`
+    for the own-row branches (no requester_email col); db_users just `[user_email]=USEREMAIL()`
+    (a filter can't LOOKUP its own table → circular error).
+  - Edit-lock: system Edit action "Only if" — db_requests
+    `AND([requester_email]=USEREMAIL(), NOT(IN([budget_request_status],LIST("approved"))))`;
+    db_payments uses `[requester_name]` match + `NOT(IN([status_code],LIST("payment_approved")))`.
+  - Remaining P0: db_users must hold REAL Workspace emails + correct `role_code` + `is_active`
+    (one row per email).
+- **Monthly recurring-payment auto-draft — spec finalized, NOT built yet.**
+  Recurring budgets aren't copied; **payments are.** While a 定常予算 is active
+  (`approved` AND TODAY in `valid_from`..`valid_to`) and its latest payment's `payment_method`
+  ∈ {振込前払い, 翌月末払い}, a **monthly bot** clones ONE draft payment (status `draft`,
+  copies request_id/件名/取引先/支払方法/通貨, **amount left blank**, 支払予定日=this month),
+  skipping if the current month already has a payment for that budget. A `提出する` action moves
+  `draft → finance_check_pending` (requires amount filled). A **purge bot at month-end** deletes
+  rows where `status_code="draft"` (condition locked to draft only). Prereqs: add `draft` to
+  status_code Enum; **payment_method Enum must contain the real values 振込前払い/翌月末払い**
+  (currently mis-set to 銀行振込/クレジットカード/口座振替/現金/その他 — needs correcting);
+  scheduled automation needs the app deployed (verify Core supports it) or use GAS.
+- **月報 export**: the user built this themselves (append-only sheet, copy-paste friendly).
+- **Production gap review (P0/P1/P2)** recorded: P0 = Security Filters + db_users real accounts +
+  edit-lock; P1 = end-to-end role acceptance test (TC-001–011), real Slack webhook verify,
+  payment_method fix + ¥30k threshold (recurring ≤¥30,000 → business-only, skip executive),
+  audit-log E2E; P2 = 方案B category agg, monthly-payment-draft, payment copy, $→¥ cleanup,
+  retire dead GAS, backup strategy.
+
 **2026-07-15 form polish + queue display fix + JPY currency:**
 - **Budget-queue blank-deck bug fixed.** The `個別予算 事業承認キュー` and `定常予算 役員承認キュー`
   deck views (on `db_requests`) had Primary/Secondary/Summary headers pointing at **payment**
