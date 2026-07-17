@@ -220,3 +220,27 @@ Remaining (step-by-step operator guide: [`GO_LIVE_CHECKLIST.md`](GO_LIVE_CHECKLI
 ## Update Rule
 
 Update this file at the end of every milestone and whenever a major assumption changes.
+
+# 2026-07-17 recurring payment draft generation
+
+- Added `generateRecurringPaymentDrafts(targetMonth)` in `BudgetService.gs`. With no
+  argument it generates the current Tokyo month.
+- Eligible rows are approved `recurring_budget` requests with `requester_email`, both
+  validity dates, and a validity period overlapping the target month.
+- Generated rows use `status_code="payment_draft"`, `current_role="finance_reviewer"`, and
+  an empty `payment_amount_tax_excluded`. The requester still sees the row through the linked
+  requester email; finance sees it through the existing current-role security filter.
+- The deterministic payment ID is `pay_recurring_<request_id>_<YYYYMM>`. A script lock plus
+  that ID makes repeated generation idempotent without adding a generation table or columns.
+- AppSheet setup for `自分の支払申請履歴`, `定常予算 支払ドラフト`, draft editing/submission,
+  and recurring consumed/pending/remaining virtual columns is documented in
+  `appsheet/COLUMN_CONFIG.md` and `appsheet/UX_CONFIG.md`.
+- Live AppSheet now has the three recurring consumed/pending/remaining virtual columns;
+  `db_requests` increased from 27 to 30 columns and the editor reports `No issues found`.
+- The two new slices/views and submit action are not live yet. The new AppSheet row-filter
+  prompt displayed the formulas but dropped the slices after a server reload, so no
+  half-configured slice was left behind. Apply the exact formulas from `UX_CONFIG.md`.
+- First operator steps: run `testRecurringPaymentDraftHelpers()`, then
+  `generateRecurringPaymentDrafts()` once; verify drafts before adding a monthly trigger.
+- `clasp push -f` completed against finance script project
+  `15Ypn30MUT7G7oI1OxZ9IfASyU897oETxNAzTsypcoujY5HIQTEppTHof` with 14 files.

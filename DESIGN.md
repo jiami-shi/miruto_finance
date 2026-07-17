@@ -208,6 +208,7 @@ Payment rules:
 
 | from_status | action | required_role | to_status | next_role |
 | --- | --- | --- | --- | --- |
+| `payment_draft` | `submit` | requester / finance / admin | `finance_check_pending` | `finance_reviewer` |
 | `payment_submitted` | `submit` | `requester` | `finance_check_pending` | `finance_reviewer` |
 | `finance_check_pending` | `approve` | `finance_reviewer` | `payment_approved` | none |
 | `finance_check_pending` | `escalate` | `finance_reviewer` | `exception_business_approval_pending` | `business_approver` |
@@ -215,6 +216,18 @@ Payment rules:
 | `exception_executive_approval_pending` | `approve` | `executive_approver` | `payment_approved` | none |
 | any non-terminal | `reject` | current role | `payment_rejected` | none |
 | any non-terminal | `cancel` | requester/admin | `payment_cancelled` | none |
+
+### Recurring monthly payment drafts
+
+- `generateRecurringPaymentDrafts()` creates one `payment_draft` for the current Tokyo
+  month from each approved `recurring_budget`.
+- Both `valid_from` and `valid_to` must exist, and the target month must overlap that range.
+- Only requests with `requester_email` are eligible, so imported ownerless history is not
+  turned into new drafts.
+- The payment amount stays blank until the requester or finance fills it.
+- `payment_id = pay_recurring_<request_id>_<YYYYMM>` is the monthly idempotency key.
+- AppSheet submits a completed draft directly to `finance_check_pending`; the existing audit
+  bot records that status change.
 
 ## 11. Exception Detection
 

@@ -76,3 +76,14 @@ Status: pending
 Goal:
 
 Run with a small group of real users and stabilize permissions, audit logs, and recovery operations.
+
+# 2026-07-17 recurring payment drafts
+
+- [x] Generate one empty-amount `payment_draft` per approved recurring budget and month.
+- [x] Use deterministic `payment_id` plus a script lock so reruns do not duplicate rows.
+- [x] Limit generation to requests with an owner email and an active validity period.
+- [x] Document requester/finance draft editing, submission, payment history, and usage formulas.
+- [ ] Run `generateRecurringPaymentDrafts()` in Apps Script for the first target month.
+- [ ] Add a monthly Apps Script trigger after the first manual run is verified.
+- [x] Add consumed, pending, and remaining virtual columns to `db_requests` in AppSheet.
+- [ ] Add the documented payment-history/draft slices, views, and submit action in AppSheet.

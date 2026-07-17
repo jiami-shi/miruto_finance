@@ -162,6 +162,17 @@ payment_cancelled
 payment_error
 ```
 
+通常预算每月支付草稿：
+
+```text
+payment_draft
+  -> finance_check_pending
+  -> payment_approved
+```
+
+每个已批准、具有申请人邮箱且目标月份在有效期内的通常预算，每月只生成一条空金额
+`payment_draft`。申请人或経理补齐金额、支付方式、供应商和支付日后提交。
+
 通常支払:
 
 ```text

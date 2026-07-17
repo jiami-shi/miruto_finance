@@ -217,6 +217,47 @@ Do not add editable `cost_category` to `db_payments`. If it already exists, set 
 
 Keep category burn-rate formula simple in AppSheet. Use Apps Script for exact category balance if the expression becomes slow.
 
+For draft rows, make these fields editable only while the row is still a draft and the
+current user is its requester, finance, or admin:
+
+```appsheet
+OR(
+  [status_code] <> "payment_draft",
+  AND(
+    [status_code] = "payment_draft",
+    OR(
+      [request_id].[requester_email] = USEREMAIL(),
+      IN(
+        "finance_reviewer",
+        LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")
+      ),
+      IN(
+        "admin",
+        LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")
+      )
+    )
+  )
+)
+```
+
+Apply that `Editable_If` to `payment_title`, `payment_method`, `vendor_name`,
+`scheduled_payment_date`, `payment_amount_tax_excluded`, `evidence_url`, and `memo`. The
+non-draft branch preserves the existing payment intake form behavior.
+
+### Virtual columns on `db_requests`
+
+| column | type | app formula |
+| --- | --- | --- |
+| `recurring_consumed_amount` | Price | `SUM(SELECT(db_payments[payment_amount_tax_excluded], AND([request_id] = [_THISROW].[request_id], [status_code] = "payment_approved")))` |
+| `recurring_pending_amount` | Price | `SUM(SELECT(db_payments[payment_amount_tax_excluded], AND([request_id] = [_THISROW].[request_id], IN([status_code], {"payment_submitted", "finance_check_pending", "exception_business_approval_pending", "exception_executive_approval_pending"}))))` |
+| `recurring_remaining_amount` | Price | `[approved_amount_tax_excluded] - [recurring_consumed_amount] - [recurring_pending_amount]` |
+
+Show these three columns only for recurring budgets:
+
+```appsheet
+IN("recurring_budget", [request_type])
+```
+
 ## `db_approval_events`
 
 Audit table. Do not expose as an editable form to normal users.

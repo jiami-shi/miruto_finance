@@ -56,6 +56,31 @@ AND(
 
 ### Payment slices
 
+`slice_my_payment_history`
+
+```appsheet
+[request_id].[requester_email] = USEREMAIL()
+```
+
+`slice_recurring_payment_drafts`
+
+```appsheet
+AND(
+  [status_code] = "payment_draft",
+  OR(
+    [request_id].[requester_email] = USEREMAIL(),
+    IN(
+      "finance_reviewer",
+      LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")
+    ),
+    IN(
+      "admin",
+      LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")
+    )
+  )
+)
+```
+
 `slice_finance_check_queue`
 
 ```appsheet
@@ -97,6 +122,8 @@ Payment views:
 
 | view | data | type | position |
 | --- | --- | --- | --- |
+| `自分の支払申請履歴` | `slice_my_payment_history` | Table | Primary |
+| `定常予算 支払ドラフト` | `slice_recurring_payment_drafts` | Table | Primary |
 | `経理確認キュー` | `slice_finance_check_queue` | Deck | Primary |
 | `異常支払 事業承認キュー` | `slice_exception_business_queue` | Deck | Primary |
 | `異常支払 役員承認キュー` | `slice_exception_executive_queue` | Deck | Primary |
@@ -124,7 +151,10 @@ Recommended order for `db_requests` detail:
 10. `product_name`
 11. `department`
 12. related payments inline view
-13. related approval events inline view
+13. `recurring_consumed_amount`
+14. `recurring_pending_amount`
+15. `recurring_remaining_amount`
+16. related approval events inline view
 
 Hide technical IDs from normal detail top area:
 
@@ -290,6 +320,41 @@ Set:
 ```text
 status_code = payment_approved
 current_role = ""
+last_action_at = NOW()
+updated_at = NOW()
+```
+
+### Submit recurring payment draft
+
+Allow the linked requester, finance, or admin to submit only after the required payment
+fields have been filled:
+
+```appsheet
+AND(
+  [status_code] = "payment_draft",
+  [payment_amount_tax_excluded] > 0,
+  ISNOTBLANK([payment_method]),
+  ISNOTBLANK([vendor_name]),
+  ISNOTBLANK([scheduled_payment_date]),
+  OR(
+    [request_id].[requester_email] = USEREMAIL(),
+    IN(
+      "finance_reviewer",
+      LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")
+    ),
+    IN(
+      "admin",
+      LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")
+    )
+  )
+)
+```
+
+Set:
+
+```text
+status_code = finance_check_pending
+current_role = finance_reviewer
 last_action_at = NOW()
 updated_at = NOW()
 ```

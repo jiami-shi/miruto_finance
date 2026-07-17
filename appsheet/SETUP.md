@@ -59,8 +59,8 @@ OR(
 
 ```appsheet
 OR(
-  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "admin",
-  [current_role] = LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code"),
+  IN("admin", LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")),
+  IN([current_role], LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")),
   [request_id].[requester_email] = USEREMAIL()
 )
 ```
