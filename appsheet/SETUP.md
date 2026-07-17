@@ -59,11 +59,15 @@ OR(
 
 ```appsheet
 OR(
-  IN("admin", LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")),
-  IN([current_role], LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")),
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "admin",
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "finance_reviewer",
+  [current_role] = LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code"),
   [request_id].[requester_email] = USEREMAIL()
 )
 ```
+
+Finance can inspect all payment rows. Other approvers see only rows currently assigned to
+their role, and requesters see payments linked to their own budget requests.
 
 ### `db_approval_events`
 

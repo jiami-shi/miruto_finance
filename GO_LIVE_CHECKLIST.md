@@ -9,6 +9,22 @@ References: [`TEST_PLAN.md`](TEST_PLAN.md) (TC-001–011) and [`TEST_RUN.md`](TE
 
 ## Part A. Pre-deployment checklist
 
+### A-0. Recurring payment production activation (completed 2026-07-17)
+
+- [x] AppSheet slices `slice_my_payment_history` and
+  `slice_recurring_payment_drafts` are live.
+- [x] Menu views `自分の支払申請履歴` and `定常予算 支払ドラフト` are live.
+- [x] Action `支払ドラフトを経理へ提出` validates amount, payment method, vendor,
+  and scheduled date before moving a draft to `finance_check_pending`.
+- [x] `db_payments` security filter allows finance to inspect payments, requesters to
+  inspect linked payments, and other approvers to inspect their assigned queue.
+- [x] Apps Script monthly trigger runs `generateRecurringPaymentDrafts` on day 1,
+  between 05:00 and 06:00 Asia/Tokyo, with immediate failure notification.
+- [x] AppSheet editor reports `No issues found` and the preview is runnable.
+
+The trigger intentionally generates nothing until a recurring request is `approved`, has
+`requester_email`, and has a validity range overlapping the target month.
+
 ### A-1. Owner-only steps (GAS activation)
 
 - [ ] **One-time OAuth consent** — open the Apps Script project and run one function that uses

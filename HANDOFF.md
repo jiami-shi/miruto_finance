@@ -240,7 +240,42 @@ Update this file at the end of every milestone and whenever a major assumption c
 - The two new slices/views and submit action are not live yet. The new AppSheet row-filter
   prompt displayed the formulas but dropped the slices after a server reload, so no
   half-configured slice was left behind. Apply the exact formulas from `UX_CONFIG.md`.
-- First operator steps: run `testRecurringPaymentDraftHelpers()`, then
-  `generateRecurringPaymentDrafts()` once; verify drafts before adding a monthly trigger.
+- The owner ran the Apps Script generation. It produced no recurring draft because the
+  live sheet currently has no eligible approved recurring request; the monthly trigger was
+  installed after confirming the generator is idempotent.
 - `clasp push -f` completed against finance script project
   `15Ypn30MUT7G7oI1OxZ9IfASyU897oETxNAzTsypcoujY5HIQTEppTHof` with 14 files.
+
+# 2026-07-17 AppSheet production configuration
+
+- Live AppSheet app:
+  `8edfbccd-fe1d-4a1a-a11d-ad502d07919b` (`newtfinance-599014119`).
+- Created and saved:
+  - `slice_my_payment_history`
+  - `slice_recurring_payment_drafts`
+  - menu view `自分の支払申請履歴`
+  - menu view `定常予算 支払ドラフト`
+  - action `支払ドラフトを経理へ提出`
+- The submit action changes `payment_draft -> finance_check_pending`, assigns
+  `finance_reviewer`, and updates `last_action_at` / `updated_at`. It is available only
+  after amount, payment method, vendor, and scheduled payment date are filled.
+- `slice_recurring_payment_drafts` also requires
+  `STARTSWITH([payment_id], "pay_recurring_")`; historical manually created draft rows do
+  not appear in the monthly recurring draft queue.
+- Both new slices have Adds and Deletes disabled. Payment creation remains available only
+  through the dedicated `支払を登録` form.
+- `db_payments` now uses the production security filter documented in
+  `appsheet/SETUP.md`: finance sees payments, requesters see rows linked to their budget
+  requests, and other approvers see rows assigned to their role.
+- Fixed the temporary role-expression type errors by using direct comparison against the
+  scalar `db_users.role_code`. AppSheet reports `No issues found`; preview is runnable.
+- Installed one Apps Script time trigger for `generateRecurringPaymentDrafts`: monthly on
+  day 1, 05:00-06:00 Asia/Tokyo, immediate failure notification.
+- Live-data check found no `pay_recurring_*` rows yet. This is expected: the only current
+  recurring request (`req_individual_10039`) is still
+  `business_approval_pending` and has a blank `requester_email`, so it is ineligible.
+- Production smoke test still requires one real or `[TEST]` recurring request with:
+  `budget_request_status=approved`, a requester email, and valid dates covering the target
+  month. After generation, fill its empty amount and required payment fields in AppSheet,
+  submit it, finance-approve it, and confirm one audit event plus the recurring consumed
+  amount update.

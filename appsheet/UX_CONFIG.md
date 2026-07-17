@@ -67,19 +67,13 @@ AND(
 ```appsheet
 AND(
   [status_code] = "payment_draft",
-  OR(
-    [request_id].[requester_email] = USEREMAIL(),
-    IN(
-      "finance_reviewer",
-      LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")
-    ),
-    IN(
-      "admin",
-      LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")
-    )
-  )
+  STARTSWITH([payment_id], "pay_recurring_")
 )
 ```
+
+The `pay_recurring_` prefix is deterministic and prevents old manually created
+`payment_draft` rows from appearing in the recurring-generation work queue. Row visibility
+is still enforced by the `db_payments` security filter.
 
 `slice_finance_check_queue`
 
@@ -127,6 +121,9 @@ Payment views:
 | `経理確認キュー` | `slice_finance_check_queue` | Deck | Primary |
 | `異常支払 事業承認キュー` | `slice_exception_business_queue` | Deck | Primary |
 | `異常支払 役員承認キュー` | `slice_exception_executive_queue` | Deck | Primary |
+
+For `slice_my_payment_history` and `slice_recurring_payment_drafts`, keep Updates enabled
+but disable Adds and Deletes. New payments must use the dedicated `支払を登録` form.
 
 Deck fields:
 
@@ -338,14 +335,8 @@ AND(
   ISNOTBLANK([scheduled_payment_date]),
   OR(
     [request_id].[requester_email] = USEREMAIL(),
-    IN(
-      "finance_reviewer",
-      LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")
-    ),
-    IN(
-      "admin",
-      LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")
-    )
+    LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "finance_reviewer",
+    LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "admin"
   )
 )
 ```

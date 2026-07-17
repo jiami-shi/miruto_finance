@@ -227,14 +227,8 @@ OR(
     [status_code] = "payment_draft",
     OR(
       [request_id].[requester_email] = USEREMAIL(),
-      IN(
-        "finance_reviewer",
-        LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")
-      ),
-      IN(
-        "admin",
-        LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code")
-      )
+      LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "finance_reviewer",
+      LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "admin"
     )
   )
 )
