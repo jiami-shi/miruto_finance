@@ -57,7 +57,20 @@ Payment category must be displayed through:
 - `[request_id].[source_category_label]`
 - `[request_id].[budget_category_code]`
 
-## 5. Create Slices and Views
+## 5. Add Budget Payment Alert Columns
+
+Before configuring budget payment alerts, add these physical columns to the end of
+`db_requests` and regenerate the AppSheet schema:
+
+- `payment_activity_status`
+- `payment_intent`
+- `last_payment_alert_at`
+- `next_payment_alert_at`
+
+Then apply [BUDGET_PAYMENT_ALERTS.md](BUDGET_PAYMENT_ALERTS.md). Do not use Apps Script
+for this one-time column addition.
+
+## 6. Create Slices and Views
 
 Use [UX_CONFIG.md](UX_CONFIG.md).
 
@@ -72,8 +85,9 @@ Required payment queues:
 - `経理確認キュー`
 - `異常支払 事業承認キュー`
 - `異常支払 役員承認キュー`
+- `未支払の予算申請`
 
-## 6. Create Actions
+## 7. Create Actions
 
 Minimum actions:
 
@@ -86,10 +100,11 @@ Minimum actions:
 - exceptional payment business approve
 - exceptional payment executive approve
 - payment reject/cancel
+- budget payment activity recalculation
 
 Every state-changing action must append one `db_approval_events` row.
 
-## 7. First Manual Tests
+## 8. First Manual Tests
 
 Run only one row per case first:
 
@@ -98,5 +113,7 @@ Run only one row per case first:
 3. normal payment: finance approval -> `payment_approved`
 4. exceptional payment: finance escalation -> business approval -> executive approval -> `payment_approved`
 5. evidence link opens from payment detail
+6. approved budget with no payment can alert the requester
+7. `payment_intent=no_longer_needed` stops payment alerts
 
 Do not test all rows until these pass.

@@ -83,6 +83,12 @@ Do not use row numbers as keys.
 | `submitted_at` | DateTime | no | submit time |
 | `approved_at` | DateTime | no | final approval time |
 | `updated_at` | DateTime | yes | last update |
+| `payment_activity_status` | Enum | no | `not_started`, `payment_active`, `fully_paid`, `payment_cancelled` |
+| `payment_intent` | Enum | no | `will_pay`, `no_longer_needed` |
+| `last_payment_alert_at` | DateTime | no | last payment follow-up alert |
+| `next_payment_alert_at` | DateTime | no | next allowed payment follow-up alert |
+
+`budget_request_status` is approval state only. Payment follow-up must not change it.
 
 ## 6. db_payments
 
@@ -229,6 +235,16 @@ Payment rules:
 - AppSheet submits a completed draft directly to `finance_check_pending`; the existing audit
   bot records that status change.
 
+### Budget payment follow-up alerts
+
+- AppSheet owns requester-facing payment follow-up alerts.
+- Approved budget requests older than 30 days with no linked payment send a Slack channel alert.
+- Active `recurring_budget` rows with `翌月末払い` and no current-month linked payment send a
+  Slack channel alert on day 15.
+- Requesters can set `payment_intent = no_longer_needed` to stop alerts; this sets payment
+  activity to `payment_cancelled` without changing approval state.
+- Physical columns must be added by the sheet owner, then AppSheet schema regenerated.
+
 ## 11. Exception Detection
 
 Apps Script should calculate persistent values when importing or recalculating. AppSheet may also display virtual warnings.
@@ -267,5 +283,6 @@ Payment category:
 - Google Sheets remains the database.
 - Monthly report export is not rewritten.
 - AppSheet owns UI actions.
-- Apps Script owns import, notification, audit append, and state integrity.
+- AppSheet owns budget payment follow-up alerts.
+- Apps Script owns import, reusable backend jobs, audit append, and state integrity.
 - Recurring budgets use total amount across validity period, not monthly limits.

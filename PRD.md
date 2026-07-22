@@ -17,6 +17,7 @@
 - 支払時に費目を選ばせず、予算申請の費目を継承する。
 - 通常支払は経理確認で完了し、異常時のみ事業承認者と役員承認者に escalation する。
 - 予算カテゴリ別の消化率を表示し、超過リスクを承認前に見えるようにする。
+- 承認済み予算の支払実行状況を追跡し、未支払または定常予算の支払未登録を通知する。
 
 ## 3. Core Decisions
 
@@ -38,6 +39,7 @@
 - approve / reject / cancel を AppSheet action で実行する。
 - 全操作を `db_approval_events` に append-only で保存する。
 - Slack 通知 job を作成・送信する。
+- 承認済み予算の未支払 alert と定常予算の月次支払未登録 alert を AppSheet Automation で送る。
 - 予算カテゴリ別の消化率 warning を表示する。
 - 月報 CSV は既存処理との接続確認に留める。
 
@@ -112,6 +114,15 @@
 - `EvidenceFiles`: 証憑 metadata。
 - `Notifications`: Slack job。
 - `ErrorLog`: backend error log。
+
+Budget request payment follow-up fields:
+
+- `payment_activity_status`: `not_started`, `payment_active`, `fully_paid`, `payment_cancelled`
+- `payment_intent`: `will_pay`, `no_longer_needed`
+- `last_payment_alert_at`
+- `next_payment_alert_at`
+
+`budget_request_status` remains the approval state. Do not overload it with payment activity.
 
 ## 10. State Machines
 
@@ -281,6 +292,8 @@ approve / reject / cancel / return / resubmit は必ず `db_approval_events` に
 - 超過、期間外、残額不足の支払が異常 queue に入る。
 - 予算カテゴリ消化率が表示され、100% 超過時に warning が出る。
 - 全操作が `db_approval_events` に保存される。
+- 承認済み予算が30日間支払未登録の場合、申請者確認の Slack 通知が作成される。
+- 有効な定常予算で `翌月末払い` の当月支払が未登録の場合、毎月15日に Slack 通知が作成される。
 - Slack 通知が job として記録され、送信結果を追跡できる。
 
 ## 16. Risks

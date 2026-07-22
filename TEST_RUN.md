@@ -1,5 +1,23 @@
 # Test Run
 
+## 2026-07-22 budget payment alert precheck
+
+Status: partially configured; still needs AppSheet editor follow-up.
+
+- Initial Chrome/AppSheet editor inspection showed live `db_requests` had 30 columns and was
+  blocked on missing physical columns.
+- User then added the columns and regenerated schema.
+- Follow-up Chrome/AppSheet editor inspection showed live `db_requests` has 34 columns and
+  includes:
+  `payment_activity_status`, `payment_intent`, `last_payment_alert_at`,
+  `next_payment_alert_at`.
+- Chrome grid editing successfully changed the visible column type selectors to:
+  `Enum`, `Enum`, `DateTime`, `DateTime` during the session.
+- AppSheet Save remained in a warning state and the virtualized grid made column-level
+  `Editable_If`, enum values, slices, actions, and bots unsafe to complete automatically.
+- Next step: finish the exact settings from `appsheet/BUDGET_PAYMENT_ALERTS.md` in the
+  AppSheet editor, then run TC-012 through TC-014.
+
 ## 2026-07-10 PoC Setup
 
 Status: superseded by 2026-07-13 run below.

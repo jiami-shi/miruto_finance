@@ -2,6 +2,27 @@
 
 ## Current State
 
+**2026-07-22 budget payment alert configuration:**
+- New AppSheet-first alert plan is documented in
+  `appsheet/BUDGET_PAYMENT_ALERTS.md`, with linked updates in `COLUMN_CONFIG.md`,
+  `UX_CONFIG.md`, `BUILD_CHECKLIST.md`, `PLAN.md`, and `README.md`.
+- The model keeps `budget_request_status` as approval state only. Payment follow-up lives in
+  `db_requests.payment_activity_status` and `db_requests.payment_intent`.
+- The user added the four physical `db_requests` columns and regenerated schema. Chrome/AppSheet
+  inspection confirmed live `db_requests` now has 34 columns and includes:
+  `payment_activity_status`, `payment_intent`, `last_payment_alert_at`, and
+  `next_payment_alert_at`.
+- Chrome grid editing changed the visible type selectors to:
+  `Enum`, `Enum`, `DateTime`, and `DateTime` during the editor session.
+- Remaining AppSheet editor work: confirm/save those types, set enum values/display names,
+  set `payment_intent` Editable_If, create `slice_my_unpaid_budget_requests`, create action
+  `支払実行状況を再計算`, and create the two scheduled Slack alert bots from
+  `appsheet/BUDGET_PAYMENT_ALERTS.md`.
+- Warning: the new AppSheet editor grid is virtualized and did not expose reliable controls for
+  column-level expressions through Chrome automation. Do not assume alert setup is complete
+  until TC-012 through TC-014 pass.
+- Do not use Apps Script for one-time column creation or data cleanup.
+
 **2026-07-17 minimal workflow cleanup + monthly report simplification:**
 - **Removed unused monthly-report cache.** `db_monthly_report_rows` had no consumer; report generation now writes only to `gen_支払月報` from `db_payments` + `db_requests`. The live `db_monthly_report_rows` tab was deleted.
 - **Monthly report generation path.** `generateMonthlyReport()` filters `db_payments` to `status_code="payment_approved"` and `payment_method` in `振込前払い` / `翌月末払い`, appends screenshot-shaped rows to `gen_支払月報`, and de-dupes by exported `支払いNo`.

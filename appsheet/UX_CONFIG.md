@@ -54,6 +54,20 @@ AND(
 )
 ```
 
+`slice_my_unpaid_budget_requests`
+
+```appsheet
+AND(
+  [requester_email] = USEREMAIL(),
+  [budget_request_status] = "approved",
+  OR(
+    ISBLANK([payment_activity_status]),
+    [payment_activity_status] = "not_started"
+  ),
+  [payment_intent] <> "no_longer_needed"
+)
+```
+
 ### Payment slices
 
 `slice_my_payment_history`
@@ -111,6 +125,7 @@ Budget views:
 | `個別予算 事業承認キュー` | `slice_individual_budget_business_queue` | Deck | Primary |
 | `定常予算 事業承認キュー` | `slice_recurring_budget_business_queue` | Deck | Primary |
 | `定常予算 役員承認キュー` | `slice_recurring_budget_executive_queue` | Deck | Primary |
+| `未支払の予算申請` | `slice_my_unpaid_budget_requests` | Table | Menu |
 
 Payment views:
 
@@ -160,7 +175,11 @@ Recommended order for `db_requests` detail:
 13. `recurring_consumed_amount`
 14. `recurring_pending_amount`
 15. `recurring_remaining_amount`
-16. related approval events inline view
+16. `payment_activity_status`
+17. `payment_intent`
+18. `last_payment_alert_at`
+19. `next_payment_alert_at`
+20. related approval events inline view
 
 Hide technical IDs from normal detail top area:
 
@@ -401,6 +420,62 @@ updated_at = NOW()
 ```
 
 For every state-changing action, add a grouped action that also adds a row to `db_approval_events`.
+
+## Budget Payment Alerts
+
+Detailed setup lives in [BUDGET_PAYMENT_ALERTS.md](BUDGET_PAYMENT_ALERTS.md). Use AppSheet
+Automation for these alerts. Do not use Apps Script for one-time column creation or cleanup.
+
+Create action `支払実行状況を再計算` on `db_requests`.
+
+Set `payment_activity_status` to:
+
+```appsheet
+IFS(
+  [payment_intent] = "no_longer_needed", "payment_cancelled",
+  SUM(
+    SELECT(
+      db_payments[payment_amount_tax_excluded],
+      AND(
+        [request_id] = [_THISROW].[request_id],
+        [status_code] = "payment_approved"
+      )
+    )
+  ) >= [approved_amount_tax_excluded], "fully_paid",
+  COUNT(
+    SELECT(
+      db_payments[payment_id],
+      AND(
+        [request_id] = [_THISROW].[request_id],
+        IN(
+          [status_code],
+          LIST(
+            "payment_draft",
+            "payment_submitted",
+            "finance_check_pending",
+            "exception_business_approval_pending",
+            "exception_executive_approval_pending",
+            "payment_approved"
+          )
+        )
+      )
+    )
+  ) > 0, "payment_active",
+  TRUE, "not_started"
+)
+```
+
+Create two scheduled alert bots:
+
+- approved budget older than 30 days with no linked payment
+- active recurring budget with `翌月末払い` and no current-month payment on day 15
+
+Both bots send Slack channel messages and update:
+
+```text
+last_payment_alert_at = NOW()
+next_payment_alert_at = <next allowed alert datetime>
+```
 
 ## Navigation
 

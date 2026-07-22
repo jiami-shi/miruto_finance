@@ -20,6 +20,7 @@ Target:
 - approval event audit log
 - budget category warning display
 - Slack notification jobs
+- budget payment follow-up alerts
 - existing monthly report connection check
 
 ## 2. Test Users
@@ -46,6 +47,8 @@ Required variation:
 - at least 3 Google Drive evidence links
 - at least 3 rows sharing the same budget/category
 - at least 1 category projected over 100% burn rate
+- at least 1 approved budget older than 30 days with no linked payment
+- at least 1 active recurring budget using `翌月末払い` with no current-month linked payment
 
 Do not use full historical data in PoC.
 
@@ -167,6 +170,33 @@ Expected:
 - notification job status becomes `failed`
 - error details are recorded
 
+### TC-012 Approved budget no-payment alert
+
+Expected:
+
+- approved budget older than 30 days with no linked payment sends one Slack channel alert
+- `last_payment_alert_at` is updated
+- repeat run on the same day does not send a duplicate alert
+
+### TC-013 Requester cancels payment intent
+
+Action:
+
+- requester sets `payment_intent` to `no_longer_needed`.
+
+Expected:
+
+- `payment_activity_status` becomes `payment_cancelled`
+- no future no-payment alert is sent for that budget request
+- `budget_request_status` remains `approved`
+
+### TC-014 Active recurring budget missing monthly payment
+
+Expected:
+
+- active `recurring_budget` with `翌月末払い` and no current-month linked payment sends one Slack channel alert on day 15
+- if a current-month `payment_draft`, `finance_check_pending`, or `payment_approved` row exists, no alert is sent
+
 ## 5. Success Criteria
 
 PoC passes when:
@@ -179,6 +209,7 @@ PoC passes when:
 - AppSheet queues show only role-relevant rows
 - payment category is inherited and read-only
 - budget category warning appears for over-100% cases
+- budget payment alerts do not change approval status
 - existing monthly CSV flow is not changed
 
 ## 6. Rollback

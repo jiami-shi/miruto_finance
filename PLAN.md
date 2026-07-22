@@ -95,3 +95,14 @@ Run with a small group of real users and stabilize permissions, audit logs, and 
 - [x] Put `pay_PAY-234` into `finance_check_pending` / `finance_reviewer`.
 - [x] Populate current generated request category display fields as PoC placeholders.
 - [ ] Run real role-gated finance and executive acceptance transitions.
+
+# 2026-07-22 budget payment alerts
+
+- [x] Document AppSheet-first budget payment alert model.
+- [x] Keep `budget_request_status` as approval status only.
+- [x] Define `payment_activity_status` and `payment_intent` on `db_requests`.
+- [x] Define unpaid-budget and active-recurring missing-payment alert bots.
+- [ ] User adds the four physical `db_requests` columns in Google Sheets.
+- [ ] Regenerate `db_requests` schema in AppSheet.
+- [ ] Configure the AppSheet columns, slice, action, and two scheduled bots.
+- [ ] Run one alert test before enabling daily/monthly notifications for real users.

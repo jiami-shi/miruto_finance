@@ -75,6 +75,22 @@ management
 expense
 ```
 
+### budget payment activity values
+
+```text
+not_started
+payment_active
+fully_paid
+payment_cancelled
+```
+
+### budget payment intent values
+
+```text
+will_pay
+no_longer_needed
+```
+
 ### action values
 
 ```text
@@ -164,12 +180,44 @@ Put `role_code` options in `Type details > Values`, not in `App formula`.
 | `submitted_at` | DateTime | off | off | off | off | off | empty | `NOW()` |
 | `approved_at` | DateTime | off | off | off | off | off | empty | empty |
 | `updated_at` | DateTime | off | off | off | off | on | empty | `NOW()` |
+| `payment_activity_status` | Enum | off | off | on | off | off | empty | `"not_started"` |
+| `payment_intent` | Enum | off | off | on | editable-if below | off | empty | empty |
+| `last_payment_alert_at` | DateTime | off | off | on | off | off | empty | empty |
+| `next_payment_alert_at` | DateTime | off | off | on | off | off | empty | empty |
 
 Required-if for `valid_from` and `valid_to`:
 
 ```appsheet
 [request_type] = "recurring_budget"
 ```
+
+Editable-if for `payment_intent`:
+
+```appsheet
+OR(
+  [requester_email] = USEREMAIL(),
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "admin"
+)
+```
+
+Suggested values for `payment_intent`:
+
+```appsheet
+LIST("will_pay", "no_longer_needed")
+```
+
+Display names:
+
+| column | display name |
+| --- | --- |
+| `payment_activity_status` | `支払実行状況` |
+| `payment_intent` | `支払予定` |
+| `last_payment_alert_at` | `最終支払確認通知日時` |
+| `next_payment_alert_at` | `次回支払確認通知日時` |
+
+Before configuring these columns in AppSheet, add them to the physical `db_requests`
+sheet and regenerate the AppSheet schema. Do not use Apps Script for this one-time
+column addition.
 
 ## `db_payments`
 

@@ -30,6 +30,7 @@ Do not design this as a simple per-payment approval chain. Budget requests autho
 - [docs/adr/README.md](docs/adr/README.md): architecture decision record index
 - [appsheet/COLUMN_CONFIG.md](appsheet/COLUMN_CONFIG.md): manual AppSheet column setup
 - [appsheet/UX_CONFIG.md](appsheet/UX_CONFIG.md): manual AppSheet slices, views, and actions
+- [appsheet/BUDGET_PAYMENT_ALERTS.md](appsheet/BUDGET_PAYMENT_ALERTS.md): AppSheet-first budget payment alert setup
 - [appsheet/BUILD_CHECKLIST.md](appsheet/BUILD_CHECKLIST.md): AppSheet build checklist
 
 ## Documentation Rule
@@ -52,6 +53,7 @@ No implementation milestone is considered done unless the related docs are curre
 - Store approval history as append-only events.
 - Use role names, not personal names, in workflow logic.
 - Keep category on budget request; never make payment category authoritative.
+- Keep budget approval status separate from payment activity status.
 
 ## Repository Structure
 
