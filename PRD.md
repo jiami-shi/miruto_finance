@@ -153,7 +153,6 @@ submitted
 payment_draft
 payment_submitted
 finance_check_pending
-finance_checked
 exception_business_approval_pending
 exception_executive_approval_pending
 payment_approved

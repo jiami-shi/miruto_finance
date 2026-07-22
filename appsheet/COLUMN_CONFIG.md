@@ -57,7 +57,6 @@ error
 payment_draft
 payment_submitted
 finance_check_pending
-finance_checked
 exception_business_approval_pending
 exception_executive_approval_pending
 payment_approved
@@ -211,7 +210,7 @@ Do not add editable `cost_category` to `db_payments`. If it already exists, set 
 | `inherited_budget_category_code` | Text | `[request_id].[budget_category_code]` |
 | `inherited_source_category_label` | Text | `[request_id].[source_category_label]` |
 | `request_approved_amount` | Price | `[request_id].[approved_amount_tax_excluded]` |
-| `request_remaining_amount` | Price | `[request_id].[approved_amount_tax_excluded] - SUM(SELECT(db_payments[payment_amount_tax_excluded], AND([request_id] = [_THISROW].[request_id], IN([status_code], {"finance_checked", "payment_approved"}))))` |
+| `request_remaining_amount` | Price | `[request_id].[approved_amount_tax_excluded] - SUM(SELECT(db_payments[payment_amount_tax_excluded], AND([request_id] = [_THISROW].[request_id], [payment_id] <> [_THISROW].[payment_id], IN([status_code], {"finance_check_pending", "exception_business_approval_pending", "exception_executive_approval_pending", "payment_approved"}))))` |
 | `has_payment_exception` | Yes/No | `OR([payment_amount_tax_excluded] > [request_remaining_amount], AND([request_id].[request_type] = "recurring_budget", OR([scheduled_payment_date] < [request_id].[valid_from], [scheduled_payment_date] > [request_id].[valid_to])))` |
 | `exception_reason` | LongText | `IFS([payment_amount_tax_excluded] > [request_remaining_amount], "予算申請の残額を超過", AND([request_id].[request_type] = "recurring_budget", OR([scheduled_payment_date] < [request_id].[valid_from], [scheduled_payment_date] > [request_id].[valid_to])), "定常予算の有効期間外")` |
 
@@ -297,6 +296,11 @@ Keep the existing columns unless rebuilding the PoC DB. They are admin/backend t
 - `db_approval_rules`: read-only in AppSheet.
 - `db_notifications`: read-only in AppSheet.
 - `db_error_log`: read-only in AppSheet.
+
+For `db_notifications`, keep legacy `payment_id` if it already exists, and add:
+
+- `target_type`
+- `target_id`
 
 ## Verification Checklist
 

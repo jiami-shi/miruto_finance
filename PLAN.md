@@ -87,3 +87,11 @@ Run with a small group of real users and stabilize permissions, audit logs, and 
 - [ ] Add a monthly Apps Script trigger after the first manual run is verified.
 - [x] Add consumed, pending, and remaining virtual columns to `db_requests` in AppSheet.
 - [ ] Add the documented payment-history/draft slices, views, and submit action in AppSheet.
+
+# 2026-07-22 blocker fix
+
+- [x] Stop budget-request transitions from writing missing `action_comment`.
+- [x] Add live `db_notifications.target_type` / `target_id` while retaining `payment_id`.
+- [x] Put `pay_PAY-234` into `finance_check_pending` / `finance_reviewer`.
+- [x] Populate current generated request category display fields as PoC placeholders.
+- [ ] Run real role-gated finance and executive acceptance transitions.

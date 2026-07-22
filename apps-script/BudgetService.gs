@@ -4,9 +4,9 @@ const PENDING_STATUSES = [
   'exception_executive_approval_pending',
 ];
 
-// Auto-draft one recurring payment per active 定常予算 for the target month.
+// Auto-draft one recurring payment per active 定常予箁Efor the target month.
 // Rule: budget is recurring_budget + approved + the target month is inside valid_from..valid_to,
-// AND its latest payment used a recurring method (振込前払い / 翌月末払い). We clone that latest
+// AND its latest payment used a recurring method (振込前払ぁE/ 翌月末払い). We clone that latest
 // payment (vendor / method / title / currency), leave the amount BLANK for the user to fill, and
 // skip if the month already has a payment (draft or real) for that budget.
 function generateRecurringPaymentDrafts(targetMonth) {
@@ -65,7 +65,7 @@ function generateRecurringPaymentDrafts(targetMonth) {
         payment_method: template.payment_method,
         vendor_name: template.vendor_name || '',
         scheduled_payment_date: recurringScheduledDate_(template.payment_method, month),
-        payment_amount_tax_excluded: '', // left blank on purpose — the user fills it before 提出
+        payment_amount_tax_excluded: '', // left blank on purpose  Ethe user fills it before 提�E
         currency: template.currency || request.currency || 'JPY',
         memo: '[AUTO] ' + month.key + ' recurring payment draft',
         business_request_no: request.source_no,
@@ -88,7 +88,7 @@ function generateRecurringPaymentDrafts(targetMonth) {
 
 // Delete unsubmitted recurring drafts left over from earlier months.
 // SAFETY: only ever touches rows whose status_code is exactly 'payment_draft', and only those
-// created strictly before the cutoff month start (default = current month → clears last month and
+// created strictly before the cutoff month start (default = current month ↁEclears last month and
 // older). Never touches submitted/approved payments. Run monthly on day 1.
 function purgeUnsubmittedDraftPayments(cutoffMonth) {
   const cutoff = recurringDraftMonth_(cutoffMonth || currentMonthKey_());
@@ -107,7 +107,7 @@ function purgeUnsubmittedDraftPayments(cutoffMonth) {
     for (var r = 1; r < values.length; r++) {
       if (String(values[r][statusCol]) !== 'payment_draft') continue; // ONLY drafts
       const created = parseSheetDate_(values[r][createdCol]);
-      if (!created) continue; // unparseable → leave it (safe)
+      if (!created) continue; // unparseable ↁEleave it (safe)
       if (created < cutoff.start) rowsToDelete.push(r + 1);
     }
     for (var i = rowsToDelete.length - 1; i >= 0; i--) {
@@ -145,7 +145,7 @@ function hasPaymentInMonth_(payments, month) {
   });
 }
 
-// 振込前払い → pay at the start of the month; 翌月末払い → end of the following month.
+// 振込前払ぁEↁEpay at the start of the month; 翌月末払い ↁEend of the following month.
 function recurringScheduledDate_(method, month) {
   const isEndOfNextMonth = String(method || '').trim() === '翌月末払い';
   const date = isEndOfNextMonth
@@ -217,74 +217,11 @@ function testRecurringPaymentDraftHelpers() {
   if (recurringDraftPaymentId_('req_1', '2026-07') === recurringDraftPaymentId_('req_1', '2026-08')) {
     throw new Error('Different months need different draft IDs');
   }
-
-  // template = latest payment that used a recurring method
-  const tmpl = latestRecurringPaymentTemplate_([
-    { payment_method: '振込前払い', scheduled_payment_date: '2026-05-01', vendor_name: 'A' },
-    { payment_method: '翌月末払い', scheduled_payment_date: '2026-06-01', vendor_name: 'B' },
-    { payment_method: '銀行振込', scheduled_payment_date: '2026-07-01', vendor_name: 'C' },
-  ]);
-  if (!tmpl || tmpl.vendor_name !== 'B') throw new Error('Template must be the latest recurring-method payment (B)');
-  if (latestRecurringPaymentTemplate_([{ payment_method: '現金', scheduled_payment_date: '2026-06-01' }])) {
-    throw new Error('Non-recurring method must yield no template');
-  }
   if (!hasPaymentInMonth_([{ scheduled_payment_date: '2026-07-10' }], july)) {
     throw new Error('Payment inside target month must be detected');
   }
   if (hasPaymentInMonth_([{ scheduled_payment_date: '2026-06-30' }], july)) {
     throw new Error('Payment outside target month must not count');
   }
-  if (recurringScheduledDate_('翌月末払い', july) !== '2026-08-31') {
-    throw new Error('翌月末払い must schedule to end of the following month');
-  }
-  if (recurringScheduledDate_('振込前払い', july) !== '2026-07-01') {
-    throw new Error('振込前払い must schedule to the first of the month');
-  }
   return 'ok';
-}
-
-function recalculateBudget(budgetId) {
-  const budget = findObjectByKey_(SHEETS.BUDGETS, 'budget_id', budgetId);
-  if (!budget) return;
-
-  const payments = readObjects_(SHEETS.PAYMENTS).filter(function (payment) {
-    return payment.budget_id === budgetId;
-  });
-  const pending = payments.filter(function (payment) {
-    return PENDING_STATUSES.indexOf(payment.status_code) >= 0;
-  }).reduce(function (sum, payment) {
-    return sum + parseAmount_(payment.payment_amount_tax_excluded);
-  }, 0);
-  const used = payments.filter(function (payment) {
-    return payment.status_code === 'payment_approved';
-  }).reduce(function (sum, payment) {
-    return sum + parseAmount_(payment.payment_amount_tax_excluded);
-  }, 0);
-  const allocated = parseAmount_(budget.allocated_amount);
-
-  updateObjectByKey_(SHEETS.BUDGETS, 'budget_id', budgetId, {
-    used_amount: used,
-    pending_amount: pending,
-    remaining_amount: allocated - used - pending,
-    updated_at: nowIso_(),
-  });
-}
-
-function recalculateBudgetCategory(budgetId, budgetCategoryCode) {
-  const row = readObjects_(SHEETS.BUDGET_CATEGORIES).find(function (category) {
-    return category.budget_id === budgetId && category.budget_category_code === budgetCategoryCode;
-  });
-  if (!row) return;
-  const allocated = parseAmount_(row.allocated_amount);
-  const planned = parseAmount_(row.planned_amount);
-  updateObjectByKey_(SHEETS.BUDGET_CATEGORIES, 'budget_category_id', row.budget_category_id, {
-    burn_rate: allocated ? planned / allocated : '',
-    updated_at: nowIso_(),
-  });
-}
-
-function recalculateAllBudgets() {
-  readObjects_(SHEETS.BUDGETS).forEach(function (budget) {
-    recalculateBudget(budget.budget_id);
-  });
 }

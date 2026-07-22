@@ -115,8 +115,7 @@ const sheets = {
   ],
   db_notifications: [
     "notification_id",
-    "target_type",
-    "target_id",
+    "payment_id",
     "type",
     "target_role",
     "target_channel",
@@ -126,6 +125,8 @@ const sheets = {
     "last_error",
     "created_at",
     "sent_at",
+    "target_type",
+    "target_id",
   ],
   db_error_log: [
     "error_id",

@@ -171,3 +171,27 @@ column mappings, all validated and saved error-free:
   local draft, which is lost on a connector reconnect. Do NOT copy a bot to retarget it to
   another table: a copied data action stays bound to the original table and cannot be reused;
   build the second bot's write step fresh instead.
+
+## 2026-07-22 blocker fix
+
+Status: blocker fix applied; full AppSheet workflow still needs a real role-gated acceptance run.
+
+Validated live PoC DB:
+
+- `db_notifications` has `target_type` and `target_id` while retaining legacy `payment_id`.
+- `pay_PAY-234` is in `finance_check_pending` / `finance_reviewer`.
+- `pay_PAY-T746` is in `exception_executive_approval_pending` / `executive_approver`.
+- Current generated request rows have category display fields populated as `経費` / `expense`.
+
+Code/docs fix:
+
+- `ApprovalService.gs` no longer writes `action_comment` on budget request transitions.
+- `request_remaining_amount` AppSheet formula no longer references removed old status codes.
+- `tools/build_poc_workbook.mjs` keeps the live-compatible `db_notifications.payment_id`
+  column and adds `target_type` / `target_id`.
+
+Still true:
+
+- Import functions remain disabled until source category mapping is validated.
+- Old `db_approval_events` rows may have blank `actor_role` / `action`; do not backfill them.
+- New approval events must populate `actor_role`, `action`, `from_status`, and `to_status`.

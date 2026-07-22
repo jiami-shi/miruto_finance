@@ -131,6 +131,8 @@ function sendSlackMessage(webhookUrl, message)
 
 Failed Slack sends do not rollback approval.
 
+PoC compatibility: keep the legacy `payment_id` column in `db_notifications` if it already exists, but new jobs use `target_type` and `target_id`.
+
 ### Monthly Report
 
 ```javascript

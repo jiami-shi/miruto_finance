@@ -359,3 +359,18 @@ Update this file at the end of every milestone and whenever a major assumption c
 - Remaining acceptance test: use real signed-in business, executive, and finance accounts
   to perform one state change each, then confirm each action appends exactly one row with
   the correct actor and status transition.
+
+# 2026-07-22 blocker fix
+
+- Fixed `ApprovalService.gs` so budget-request transitions do not write `action_comment`
+  to `db_requests`; only payment transitions clear `db_payments.action_comment`.
+- Live `db_notifications` now keeps legacy `payment_id` and also has `target_type` /
+  `target_id`, matching the new notification job shape without breaking old AppSheet refs.
+- `pay_PAY-234` is ready for finance queue validation:
+  `finance_check_pending` / `finance_reviewer`.
+- `pay_PAY-T746` remains ready for executive exception queue validation:
+  `exception_executive_approval_pending` / `executive_approver`.
+- Current generated request rows have PoC placeholder category display values
+  (`経費` / `expense`). Validate real source category mapping before enabling import.
+- New audit events must populate `actor_role`, `action`, `from_status`, and `to_status`;
+  old incomplete audit rows were not backfilled.
