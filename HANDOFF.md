@@ -415,7 +415,7 @@ Update this file at the end of every milestone and whenever a major assumption c
 - App localization maps `Save` to `申請` and `Cancel` to `取り消し`.
 - Apps Script recurring drafts now allow a prior credit-card payment as a template, leave
   its date and amount blank, and continue excluding expense reimbursements.
+- `db_vendors.vendor_id` now uses `UNIQUEID()` as its Initial value and is hidden,
+  read-only, required, and the sole key. AppSheet reports no errors or warnings.
 - Remaining acceptance work: run one real signed-in end-to-end test per role and verify
-  scheduled bots after their next execution. AppSheet still shows a non-blocking
-  `db_vendors.vendor_id` key warning; set Initial value to `UNIQUEID()`, then hide and make
-  the column read-only.
+  scheduled bots after their next execution.
