@@ -490,6 +490,9 @@ next_payment_alert_at = <next allowed alert datetime>
   `remaining_amount`.
 - Use Deck for `カテゴリ別消化`: primary `budget_id`, secondary
   `budget_category_code`, summary `burn_rate`.
+- Keep the generated payment Ref actions, but set their user-facing names:
+  `View Ref (budget_id)` -> `HD予算を見る` and
+  `View Ref (request_id)` -> `予算申請を見る`.
 
 For normal approvers, show only queues relevant to their role. If a manager can see duplicate queues, check:
 

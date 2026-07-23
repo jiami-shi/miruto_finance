@@ -429,3 +429,5 @@ Update this file at the end of every milestone and whenever a major assumption c
 - Changed `予算残高` and `カテゴリ別消化` from Table to Deck. Budget cards show
   `remaining_amount`; category cards show `burn_rate`.
 - Live AppSheet saved with no errors or warnings.
+- Renamed the two generated payment Ref actions to `HD予算を見る` and
+  `予算申請を見る`; their targets and inline behavior are unchanged.
