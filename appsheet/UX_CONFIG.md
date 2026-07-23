@@ -479,6 +479,18 @@ next_payment_alert_at = <next allowed alert datetime>
 
 ## Navigation
 
+### Mobile layout
+
+- Keep only five role workflow views in Primary Navigation:
+  `予算 事業承認キュー`, `予算承認`, `経理確認キュー`,
+  `支払 事業承認キュー`, and `支払承認`.
+- Put application forms, histories, and duplicate exception queues in Menu Navigation.
+- Enable `Use tabs in mobile view` on the `ホーム` dashboard.
+- Use Deck for `予算残高`: primary `budget_name`, secondary `budget_id`, summary
+  `remaining_amount`.
+- Use Deck for `カテゴリ別消化`: primary `budget_id`, secondary
+  `budget_category_code`, summary `burn_rate`.
+
 For normal approvers, show only queues relevant to their role. If a manager can see duplicate queues, check:
 
 - each queue uses a slice, not the raw table

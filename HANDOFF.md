@@ -419,3 +419,13 @@ Update this file at the end of every milestone and whenever a major assumption c
   read-only, required, and the sole key. AppSheet reports no errors or warnings.
 - Remaining acceptance work: run one real signed-in end-to-end test per role and verify
   scheduled bots after their next execution.
+
+# 2026-07-23 mobile UX cleanup
+
+- Reduced Primary Navigation from 11 views to five approval/finance workflow views.
+  Forms, histories, and duplicate exception queues remain available from the menu.
+- Enabled `Use tabs in mobile view` on the `ホーム` dashboard so its child views do not
+  appear as one long mobile list in AppSheet mobile clients.
+- Changed `予算残高` and `カテゴリ別消化` from Table to Deck. Budget cards show
+  `remaining_amount`; category cards show `burn_rate`.
+- Live AppSheet saved with no errors or warnings.
