@@ -3,10 +3,11 @@ const PENDING_STATUSES = [
   'exception_business_approval_pending',
   'exception_executive_approval_pending',
 ];
+const RECURRING_DRAFT_PAYMENT_METHODS = MONTHLY_REPORT_PAYMENT_METHODS.concat(['クレカ払い']);
 
-// Auto-draft one recurring payment per active 定常予箁Efor the target month.
+// Auto-draft one recurring payment per active recurring budget for the target month.
 // Rule: budget is recurring_budget + approved + the target month is inside valid_from..valid_to,
-// AND its latest payment used a recurring method (振込前払ぁE/ 翌月末払い). We clone that latest
+// AND its latest payment used a recurring method. We clone that latest
 // payment (vendor / method / title / currency), leave the amount BLANK for the user to fill, and
 // skip if the month already has a payment (draft or real) for that budget.
 function generateRecurringPaymentDrafts(targetMonth) {
@@ -65,11 +66,11 @@ function generateRecurringPaymentDrafts(targetMonth) {
         payment_method: template.payment_method,
         vendor_name: template.vendor_name || '',
         scheduled_payment_date: recurringScheduledDate_(template.payment_method, month),
-        payment_amount_tax_excluded: '', // left blank on purpose  Ethe user fills it before 提�E
+        payment_amount_tax_excluded: '', // The requester or finance fills this before submission.
         currency: template.currency || request.currency || 'JPY',
         memo: '[AUTO] ' + month.key + ' recurring payment draft',
         business_request_no: request.source_no,
-        hd_budget_ref: request.hd_budget_ref,
+        hd_budget_ref: '',
         budget_id: request.budget_id,
         status_code: 'payment_draft',
         current_role: 'finance_reviewer',
@@ -126,7 +127,7 @@ function currentMonthKey_() {
 // The template = the most recent prior payment that used a recurring method.
 function latestRecurringPaymentTemplate_(payments) {
   const candidates = payments.filter(function (payment) {
-    return MONTHLY_REPORT_PAYMENT_METHODS.indexOf(String(payment.payment_method || '').trim()) >= 0;
+    return RECURRING_DRAFT_PAYMENT_METHODS.indexOf(String(payment.payment_method || '').trim()) >= 0;
   });
   if (!candidates.length) return null;
   candidates.sort(function (a, b) { return paymentSortMillis_(b) - paymentSortMillis_(a); });
@@ -145,8 +146,9 @@ function hasPaymentInMonth_(payments, month) {
   });
 }
 
-// 振込前払ぁEↁEpay at the start of the month; 翌月末払い ↁEend of the following month.
+// Credit card billing dates vary, so its draft date is intentionally blank.
 function recurringScheduledDate_(method, month) {
+  if (String(method || '').trim() === 'クレカ払い') return '';
   const isEndOfNextMonth = String(method || '').trim() === '翌月末払い';
   const date = isEndOfNextMonth
     ? new Date(month.start.getFullYear(), month.start.getMonth() + 2, 0)
@@ -222,6 +224,25 @@ function testRecurringPaymentDraftHelpers() {
   }
   if (hasPaymentInMonth_([{ scheduled_payment_date: '2026-06-30' }], july)) {
     throw new Error('Payment outside target month must not count');
+  }
+  if (!latestRecurringPaymentTemplate_([
+    { payment_method: 'クレカ払い', scheduled_payment_date: '2026-07-01' },
+  ])) {
+    throw new Error('Credit card payments must be eligible recurring templates');
+  }
+  if (latestRecurringPaymentTemplate_([
+    { payment_method: '経費精算', scheduled_payment_date: '2026-07-01' },
+  ])) {
+    throw new Error('Expense reimbursements must not create recurring drafts');
+  }
+  if (recurringScheduledDate_('クレカ払い', july) !== '') {
+    throw new Error('Credit card draft dates must be filled by the requester or finance');
+  }
+  if (recurringScheduledDate_('振込前払い', july) !== '2026-07-01') {
+    throw new Error('Prepaid transfers must schedule to the first of the month');
+  }
+  if (recurringScheduledDate_('翌月末払い', july) !== '2026-08-31') {
+    throw new Error('Next-month-end payments must schedule to the end of the following month');
   }
   return 'ok';
 }

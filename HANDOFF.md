@@ -395,3 +395,27 @@ Update this file at the end of every milestone and whenever a major assumption c
   (`経費` / `expense`). Validate real source category mapping before enabling import.
 - New audit events must populate `actor_role`, `action`, `from_status`, and `to_status`;
   old incomplete audit rows were not backfilled.
+
+# 2026-07-23 boss feedback implementation
+
+- Live AppSheet now requires `valid_from` and `valid_to` for both individual and recurring
+  budgets. `valid_to` must be on or after `valid_from`.
+- Budget requests require a linked `budget_id` (HD budget) and an active `vendor_name`.
+  Currency is hidden and fixed to JPY; comment is displayed as `内容`.
+- Added live `db_vendors` with real active vendors. Budget and payment vendor fields use it
+  as a dropdown; payments default the vendor from their linked request.
+- Payment methods are exactly `クレカ払い`, `経費精算`, `振込前払い`, and `翌月末払い`.
+  Monthly report generation remains restricted to the final two methods.
+- Added `evidence_file` and `evidence_image`; images can render inline in AppSheet.
+- Added approval summary virtual columns for HD approved amount, division planned total,
+  linked request approved amount, and cumulative approved payment amount.
+- Added daily AppSheet automations: expiry notice at seven days/on expiry, and approved
+  request status transition to `expired` after `valid_to`.
+- Payment validity exception logic now applies to both request types.
+- App localization maps `Save` to `申請` and `Cancel` to `取り消し`.
+- Apps Script recurring drafts now allow a prior credit-card payment as a template, leave
+  its date and amount blank, and continue excluding expense reimbursements.
+- Remaining acceptance work: run one real signed-in end-to-end test per role and verify
+  scheduled bots after their next execution. AppSheet still shows a non-blocking
+  `db_vendors.vendor_id` key warning; set Initial value to `UNIQUEID()`, then hide and make
+  the column read-only.

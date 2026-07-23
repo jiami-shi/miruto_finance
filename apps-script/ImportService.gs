@@ -128,13 +128,13 @@ function mapBudgetRequest_(row, requestType, existing) {
     valid_to: first_(row, ['契約終了予定日']),
     budget_request_status: status,
     current_role: current.current_role || (status === 'approved' ? '' : 'business_approver'),
-    hd_budget_ref: first_(row, ['執行予算No', '紐づけ予算No']),
     budget_id: makeBudgetId_(first_(row, ['執行予算No', '紐づけ予算No'])),
     source_url: first_(row, ['証憑資料', '契約書、利用規約リンク']),
     created_at: current.created_at || first_(row, ['申請日']) || now,
     submitted_at: current.submitted_at || first_(row, ['申請日']) || now,
     approved_at: current.approved_at || (status === 'approved' ? now : ''),
     updated_at: now,
+    vendor_name: current.vendor_name || first_(row, ['取引先', '支払先', '仕入れ先']),
   };
 }
 
@@ -213,5 +213,7 @@ function isApprovedSourceRow_(row) {
 function normalizePaymentMethod_(value) {
   const text = String(value || '').trim();
   if (text === '翌月末支払い') return '翌月末払い';
+  if (/クレジット|クレカ/.test(text)) return 'クレカ払い';
+  if (/経費|立替/.test(text)) return '経費精算';
   return text;
 }

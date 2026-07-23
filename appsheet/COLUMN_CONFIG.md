@@ -48,6 +48,7 @@ executive_approved
 approved
 rejected
 cancelled
+expired
 error
 ```
 
@@ -168,13 +169,13 @@ Put `role_code` options in `Type details > Values`, not in `App formula`.
 | `source_category_label` | Text | off | off | on | on | on | empty | empty |
 | `budget_category_code` | Enum | off | off | on | on | on | empty | empty |
 | `approved_amount_tax_excluded` | Price | off | off | on | on | on | empty | empty |
-| `currency` | Enum | off | off | on | on | on | empty | `JPY` |
-| `valid_from` | Date | off | off | on | on | required-if below | empty | empty |
-| `valid_to` | Date | off | off | on | on | required-if below | empty | empty |
+| `currency` | Enum | off | off | off | off | off | empty | `JPY` |
+| `valid_from` | Date | off | off | on | on | on | empty | empty |
+| `valid_to` | Date | off | off | on | on | on | empty | empty |
 | `budget_request_status` | Enum | off | off | on | off | on | empty | `submitted` |
 | `current_role` | Enum | off | off | off | off | off | empty | `business_approver` |
-| `hd_budget_ref` | Text | off | off | off | on | off | empty | empty |
-| `budget_id` | Ref -> `db_budgets` | off | off | off | on | off | empty | empty |
+| `vendor_name` | Enum (base Text) | off | off | on | on | on | empty | empty |
+| `budget_id` | Ref -> `db_budgets` | off | off | on | on | on | empty | empty |
 | `source_url` | URL | off | off | off | off | off | empty | empty |
 | `created_at` | DateTime | off | off | off | off | on | empty | `NOW()` |
 | `submitted_at` | DateTime | off | off | off | off | off | empty | `NOW()` |
@@ -185,10 +186,17 @@ Put `role_code` options in `Type details > Values`, not in `App formula`.
 | `last_payment_alert_at` | DateTime | off | off | on | off | off | empty | empty |
 | `next_payment_alert_at` | DateTime | off | off | on | off | off | empty | empty |
 
-Required-if for `valid_from` and `valid_to`:
+Both individual and recurring budgets require `valid_from` and `valid_to`. Set
+`valid_to` Valid_If to:
 
 ```appsheet
-[request_type] = "recurring_budget"
+[_THIS] >= [valid_from]
+```
+
+`vendor_name` Valid_If:
+
+```appsheet
+SELECT(db_vendors[vendor_name], [is_active] = TRUE)
 ```
 
 Editable-if for `payment_intent`:
@@ -231,8 +239,8 @@ Configure this before `db_approval_events`.
 | `payment_no` | Text | off | on | off | off | on | empty | empty |
 | `payment_title` | Text | off | off | on | on | on | empty | empty |
 | `requester_name` | Text | off | off | on | off | off | empty | empty |
-| `payment_method` | Text | off | off | on | on | on | empty | empty |
-| `vendor_name` | Text | off | off | on | on | off | empty | empty |
+| `payment_method` | Enum | off | off | on | on | on | empty | empty |
+| `vendor_name` | Enum (base Text) | off | off | on | on | on | empty | `[request_id].[vendor_name]` |
 | `source_payment_status` | Text | off | off | off | off | off | empty | empty |
 | `scheduled_payment_date` | Date | off | off | on | on | off | empty | empty |
 | `payment_amount_tax_excluded` | Price | off | off | on | on | on | empty | empty |
@@ -248,6 +256,31 @@ Configure this before `db_approval_events`.
 | `last_action_at` | DateTime | off | off | off | off | off | empty | empty |
 | `created_at` | DateTime | off | off | off | off | on | empty | `NOW()` |
 | `updated_at` | DateTime | off | off | off | off | on | empty | `NOW()` |
+| `evidence_file` | File | off | off | on | on | off | empty | empty |
+| `evidence_image` | Image | off | off | on | on | off | empty | empty |
+
+Payment method values:
+
+```text
+クレカ払い
+経費精算
+振込前払い
+翌月末払い
+```
+
+`vendor_name` uses the same active-vendor expression as `db_requests.vendor_name`.
+
+## `db_vendors`
+
+| column | type | key | label | show | editable | required |
+| --- | --- | --- | --- | --- | --- | --- |
+| `vendor_id` | Text | on | off | off | off | on |
+| `vendor_name` | Text | off | on | on | on | on |
+| `is_active` | Yes/No | off | off | on | on | on |
+| `updated_at` | DateTime | off | off | off | off | off |
+
+Only active vendors appear in budget and payment forms. Add or deactivate vendors in
+`db_vendors`; do not hard-code vendor names in AppSheet.
 
 Do not add editable `cost_category` to `db_payments`. If it already exists, set `Show=off`, `Editable=off`, `Required=off`.
 
@@ -259,8 +292,8 @@ Do not add editable `cost_category` to `db_payments`. If it already exists, set 
 | `inherited_source_category_label` | Text | `[request_id].[source_category_label]` |
 | `request_approved_amount` | Price | `[request_id].[approved_amount_tax_excluded]` |
 | `request_remaining_amount` | Price | `[request_id].[approved_amount_tax_excluded] - SUM(SELECT(db_payments[payment_amount_tax_excluded], AND([request_id] = [_THISROW].[request_id], [payment_id] <> [_THISROW].[payment_id], IN([status_code], {"finance_check_pending", "exception_business_approval_pending", "exception_executive_approval_pending", "payment_approved"}))))` |
-| `has_payment_exception` | Yes/No | `OR([payment_amount_tax_excluded] > [request_remaining_amount], AND([request_id].[request_type] = "recurring_budget", OR([scheduled_payment_date] < [request_id].[valid_from], [scheduled_payment_date] > [request_id].[valid_to])))` |
-| `exception_reason` | LongText | `IFS([payment_amount_tax_excluded] > [request_remaining_amount], "予算申請の残額を超過", AND([request_id].[request_type] = "recurring_budget", OR([scheduled_payment_date] < [request_id].[valid_from], [scheduled_payment_date] > [request_id].[valid_to])), "定常予算の有効期間外")` |
+| `has_payment_exception` | Yes/No | `OR([payment_amount_tax_excluded] > [request_remaining_amount], [scheduled_payment_date] < [request_id].[valid_from], [scheduled_payment_date] > [request_id].[valid_to])` |
+| `exception_reason` | LongText | `IFS([payment_amount_tax_excluded] > [request_remaining_amount], "予算申請の残額を超過", OR([scheduled_payment_date] < [request_id].[valid_from], [scheduled_payment_date] > [request_id].[valid_to]), "予算の有効期間外")` |
 
 Keep category burn-rate formula simple in AppSheet. Use Apps Script for exact category balance if the expression becomes slow.
 

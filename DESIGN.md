@@ -37,6 +37,7 @@ source sheets
 | `db_approval_events` | append-only audit events | no |
 | `db_users` | role mapping | admin only |
 | `db_approval_rules` | allowed state transitions | admin only |
+| `db_vendors` | active vendor master for form dropdowns | admin only |
 | `db_evidence_files` | evidence links | Apps Script/AppSheet |
 | `db_notifications` | Slack jobs | Apps Script only |
 | `db_error_log` | backend errors | Apps Script only |
@@ -72,12 +73,12 @@ Do not use row numbers as keys.
 | `budget_category_code` | Enum | yes | standard 5-category code |
 | `approved_amount_tax_excluded` | Price | yes | approved budget amount |
 | `currency` | Enum | yes | `JPY` |
-| `valid_from` | Date | recurring only | required for `recurring_budget` |
-| `valid_to` | Date | recurring only | required for `recurring_budget` |
+| `valid_from` | Date | yes | required for both request types |
+| `valid_to` | Date | yes | required for both request types; expired requests cannot be used |
 | `budget_request_status` | Enum | yes | budget state machine |
 | `current_role` | Enum | no | next actor role |
-| `hd_budget_ref` | Text | no | source HD budget ref |
-| `budget_id` | Ref -> `db_budgets` | no | linked HD budget |
+| `vendor_name` | Enum | yes | active value from `db_vendors` |
+| `budget_id` | Ref -> `db_budgets` | yes | linked HD budget |
 | `source_url` | URL | no | source row/sheet link |
 | `created_at` | DateTime | yes | import/create time |
 | `submitted_at` | DateTime | no | submit time |
@@ -101,13 +102,15 @@ Do not use row numbers as keys.
 | `payment_no` | Text | yes | external payment no |
 | `payment_title` | Text | yes | payment title |
 | `requester_name` | Text | no | source applicant |
-| `payment_method` | Text | yes | source method |
-| `vendor_name` | Text | no | payee |
+| `payment_method` | Enum | yes | `クレカ払い`, `経費精算`, `振込前払い`, `翌月末払い` |
+| `vendor_name` | Enum | yes | active value from `db_vendors`; defaults from request |
 | `source_payment_status` | Text | no | source status |
 | `scheduled_payment_date` | Date | no | payment date |
 | `payment_amount_tax_excluded` | Price | yes | payment amount |
 | `currency` | Enum | yes | `JPY` |
 | `evidence_url` | URL | no | Google Drive or external evidence |
+| `evidence_file` | File | no | evidence uploaded through AppSheet |
+| `evidence_image` | Image | no | inline-previewable evidence |
 | `memo` | LongText | no | source memo |
 | `business_request_no` | Text | no | source ref |
 | `hd_budget_ref` | Text | no | source ref |
