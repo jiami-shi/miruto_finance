@@ -226,18 +226,16 @@ For `db_payments.evidence_url`:
 | Editable | off |
 | Display name | `証憑を開く` |
 
-Create an action:
+Configure the system-generated file action:
 
 | setting | value |
 | --- | --- |
-| Action name | `証憑を開く` |
-| For a record of this table | `db_payments` |
-| Do this | `External: open a file` |
-| File | `[evidence_file]` |
-| Only if this condition is true | `ISNOTBLANK([evidence_file])` |
+| Action | `Open File (evidence_file)` |
+| Display name | `証憑を開く` |
 | Position | Prominent |
 
-Keep `evidence_url` as the clickable fallback for legacy URL-only rows.
+Do not create a second custom file action. Set both system-generated
+`Open Url (evidence_preview_url)` and `Open Url (evidence_url)` actions to `Hide`.
 
 Add virtual column `evidence_preview_url`:
 

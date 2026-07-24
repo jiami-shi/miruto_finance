@@ -33,9 +33,9 @@
 - Payment requester capture now stores the creator email: the legacy physical column
   `db_payments.requester_name` is type `Email`, has Initial value `USEREMAIL()`, and is
   read-only/required. Payment Slack resolves the requester mention from that email.
-- The custom `証憑を開く` payment action now uses native `External: open a file` with
-  `[evidence_file]`, is Prominent, and appears when the uploaded file is nonblank. Legacy
-  `evidence_url` rows keep their normal clickable URL. AppSheet reports `No issues found`.
+- Evidence actions were simplified after review: the duplicate custom `証憑を開く` action
+  was deleted. The system `Open File (evidence_file)` action is now Prominent with display
+  name `証憑を開く`; both generated URL actions are hidden. AppSheet reports `No issues found`.
 
 **2026-07-22 budget payment alert configuration:**
 - New AppSheet-first alert plan is documented in

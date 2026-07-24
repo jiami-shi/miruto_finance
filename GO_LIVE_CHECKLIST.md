@@ -52,7 +52,7 @@ The trigger intentionally generates nothing until a recurring request is `approv
 
 ### A-3. AppSheet structure (just confirm it exists)
 
-- [ ] 9 role-gated actions (3 on db_requests, 4 on db_payments + 証憑を開く) — green in Errors & Warnings
+- [ ] 7 role-gated actions (3 on db_requests, 4 on db_payments) plus the system `Open File (evidence_file)` action — green in Errors & Warnings
 - [ ] 6 slices + 6 deck views (one per queue)
 - [ ] Two audit bots, **no Error badge**:
   - `_audit_payment_event` (db_payments, `target_type="payment"`)

@@ -54,7 +54,7 @@ errors/warnings in "Errors & Warnings"):
 | 5 | db_payments | `_set_payment_escalate` | status=exception_business_approval_pending, current_role=business_approver, last_action_at=NOW, updated_at=NOW | finance_check_pending & has_payment_exception & finance_reviewer |
 | 6 | db_payments | `_set_payment_exception_business_approve` | status=exception_executive_approval_pending, current_role=executive_approver, last_action_at=NOW, updated_at=NOW | exception_business_approval_pending & business_approver |
 | 7 | db_payments | `_set_payment_exception_executive_approve` | status=payment_approved, current_role="", last_action_at=NOW, updated_at=NOW | exception_executive_approval_pending & executive_approver |
-| - | db_payments | `証憑を開く` (External: go to `[evidence_url]`) | - | ISNOTBLANK([evidence_url]) |
+| - | db_payments | system `Open File (evidence_file)` (display: `証憑を開く`) | - | Prominent |
 
 All role checks use `LOOKUP(USEREMAIL(),"db_users","user_email","role_code")=...`.
 
