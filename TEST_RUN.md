@@ -1,5 +1,22 @@
 # Test Run
 
+## 2026-07-24 HD budget reservation and vendor approval
+
+Status: PASS for configuration and non-mutating AppSheet preview.
+
+- `db_budgets!I2` uses an `ARRAYFORMULA` that subtracts approved request amounts by
+  `budget_id`.
+- `bud_No_63` changed from `60,872,632` to `60,862,632` after the approved `test 1`
+  request (`10,000`) was included.
+- The request amount field and all three budget approval actions reject missing HD budgets
+  and amounts above the current HD budget balance.
+- Vendor form preview contains vendor name and `内容`; `is_active` and approval metadata are
+  hidden.
+- Preview as `yuki_kurihara@reazon.jp` showed pending vendor `sa` and action
+  `取引先を事業承認`. The action was not executed, preserving the user's test row.
+- AppSheet validation result: `No issues found`.
+- Slack notification acceptance was deferred until the webhook is confirmed.
+
 ## 2026-07-24 budget payment alert build
 
 Status: AppSheet configuration complete; live-message acceptance test pending.

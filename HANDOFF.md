@@ -2,6 +2,26 @@
 
 ## Current State
 
+**2026-07-24 HD budget reservation and vendor approval:**
+- `db_budgets.remaining_amount` is now calculated in Google Sheets by one
+  `ARRAYFORMULA` in `I2`. It subtracts approved `db_requests` amounts grouped by
+  `budget_id`, in addition to imported used and pending amounts. This must remain a
+  spreadsheet formula, not an AppSheet App formula, because a physical AppSheet column
+  does not recalculate when another table changes.
+- The July HD budget `bud_No_63` now shows `60,862,632`, correctly reserving the approved
+  `test 1` request amount of `10,000`.
+- Budget approval actions require a linked HD budget and enough current
+  `remaining_amount`. The request amount field also rejects values above the linked
+  budget balance.
+- `db_vendors` now includes `vendor_detail`, `requester_email`, `approval_status`,
+  `approved_by`, and `approved_at`. The applicant form shows only vendor name and content;
+  new rows start at `business_approval_pending` and remain inactive until approved.
+- Added action `取引先を事業承認`, slice `slice_vendor_business_queue`, and primary Deck
+  view `取引先 事業承認キュー`. Only `business_approver` and `admin` can see or execute
+  them. Verified with `yuki_kurihara@reazon.jp` preview without executing the approval.
+- Slack/vendor notifications were intentionally deferred because the webhook is not yet
+  confirmed. AppSheet saved with `No issues found`.
+
 **2026-07-24 AppSheet production-entry and notification cleanup:**
 - Enabled Adds/Updates for `db_budgets` and `db_budget_categories`. Added menu Form
   views `月次HD予算を登録`, `カテゴリ予算を追加`, and `取引先を追加`.

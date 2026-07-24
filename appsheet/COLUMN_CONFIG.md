@@ -132,9 +132,16 @@ Put `role_code` options in `Type details > Values`, not in `App formula`.
 | `allocated_amount` | Price | off | off | on | off | on | empty | empty |
 | `used_amount` | Price | off | off | on | off | on | empty | empty |
 | `pending_amount` | Price | off | off | on | off | on | empty | empty |
-| `remaining_amount` | Price | off | off | on | off | on | empty | empty |
+| `remaining_amount` | Number | off | off | on | off | on | empty | empty |
 | `currency` | Enum | off | off | on | off | on | empty | empty |
 | `updated_at` | DateTime | off | off | on | off | on | empty | empty |
+
+`db_budgets.remaining_amount` is owned by the spreadsheet. Put this formula in
+`db_budgets!I2`, clear the cells below it, and keep the AppSheet App formula empty:
+
+```gs
+=ARRAYFORMULA(IF(A2:A="","",F2:F-G2:G-H2:H-IFNA(VLOOKUP(A2:A,QUERY({db_requests!T2:T,db_requests!M2:M,db_requests!Q2:Q},"select Col1,sum(Col2) where Col3='approved' and Col1 is not null group by Col1 label sum(Col2) ''",0),2,FALSE),0)))
+```
 
 ## `db_budget_categories`
 
@@ -186,6 +193,21 @@ Put `role_code` options in `Type details > Values`, not in `App formula`.
 | `payment_intent` | Enum | off | off | on | editable-if below | off | empty | empty |
 | `last_payment_alert_at` | DateTime | off | off | on | off | off | empty | empty |
 | `next_payment_alert_at` | DateTime | off | off | on | off | off | empty | empty |
+
+`approved_amount_tax_excluded` Valid_If:
+
+```appsheet
+AND(
+  [_THIS] > 0,
+  OR(
+    ISBLANK([budget_id]),
+    [_THIS] <= [budget_id].[remaining_amount]
+      + IF([budget_request_status] = "approved", [_THIS], 0)
+  )
+)
+```
+
+Use `HD予算の残額を超えています` as the invalid-value message.
 
 Both individual and recurring budgets require `valid_from` and `valid_to`. Set
 `valid_to` Valid_If to:
@@ -317,15 +339,21 @@ Payment method values:
 
 ## `db_vendors`
 
-| column | type | key | label | show | editable | required |
-| --- | --- | --- | --- | --- | --- | --- |
-| `vendor_id` | Text | on | off | off | off | on |
-| `vendor_name` | Text | off | on | on | on | on |
-| `is_active` | Yes/No | off | off | on | on | on |
-| `updated_at` | DateTime | off | off | off | off | off |
+| column | type | key | label | show | editable | required | app formula | initial value |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `vendor_id` | Text | on | off | off | off | on | empty | `UNIQUEID()` |
+| `vendor_name` | Name | off | on | on | on | on | empty | empty |
+| `is_active` | Yes/No | off | off | off | off | on | `[approval_status]="approved"` | empty |
+| `updated_at` | DateTime | off | off | off | off | on | empty | `NOW()` |
+| `vendor_detail` | LongText | off | off | on | on | on | empty | empty |
+| `requester_email` | Email | off | off | off | off | on | empty | `USEREMAIL()` |
+| `approval_status` | Enum | off | off | off | on | on | empty | `"business_approval_pending"` |
+| `approved_by` | Email | off | off | off | on | off | empty | empty |
+| `approved_at` | DateTime | off | off | off | on | off | empty | empty |
 
-Only active vendors appear in budget and payment forms. Add or deactivate vendors in
-`db_vendors`; do not hard-code vendor names in AppSheet.
+Only approved active vendors appear in budget and payment forms. Do not hard-code vendor
+names in AppSheet. Use display name `内容` for `vendor_detail`; the applicant form should
+show only `vendor_name` and `vendor_detail`.
 
 Do not add editable `cost_category` to `db_payments`. If it already exists, set `Show=off`, `Editable=off`, `Required=off`.
 

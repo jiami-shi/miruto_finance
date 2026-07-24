@@ -17,6 +17,7 @@ In `Data > Tables`:
 | `db_approval_rules` | Read-only | off | off | off |
 | `db_notifications` | Read-only | off | off | off |
 | `db_error_log` | Read-only | off | off | off |
+| `db_vendors` | Adds and updates | on | on via approval action | off |
 
 Hide generated Add/Edit/Delete actions from normal approvers once explicit actions exist.
 
@@ -55,7 +56,9 @@ must have a scalar `role_code` Show-if condition.
 AND(
   [request_type] = "individual_budget",
   [budget_request_status] = "business_approval_pending",
-  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "business_approver"
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "business_approver",
+  ISNOTBLANK([budget_id]),
+  [approved_amount_tax_excluded] <= [budget_id].[remaining_amount]
 )
 ```
 
@@ -65,7 +68,9 @@ AND(
 AND(
   [request_type] = "recurring_budget",
   [budget_request_status] = "business_approval_pending",
-  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "business_approver"
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "business_approver",
+  ISNOTBLANK([budget_id]),
+  [approved_amount_tax_excluded] <= [budget_id].[remaining_amount]
 )
 ```
 
@@ -75,7 +80,9 @@ AND(
 AND(
   [request_type] = "recurring_budget",
   [budget_request_status] = "executive_approval_pending",
-  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "executive_approver"
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "executive_approver",
+  ISNOTBLANK([budget_id]),
+  [approved_amount_tax_excluded] <= [budget_id].[remaining_amount]
 )
 ```
 
@@ -141,6 +148,20 @@ AND(
 )
 ```
 
+### Vendor approval slice
+
+`slice_vendor_business_queue`
+
+```appsheet
+AND(
+  [approval_status] = "business_approval_pending",
+  OR(
+    LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "business_approver",
+    LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "admin"
+  )
+)
+```
+
 ## Views
 
 Budget views:
@@ -161,6 +182,14 @@ Payment views:
 | `経理確認キュー` | `slice_finance_check_queue` | Deck | Primary |
 | `異常支払 事業承認キュー` | `slice_exception_business_queue` | Deck | Primary |
 | `異常支払 役員承認キュー` | `slice_exception_executive_queue` | Deck | Primary |
+
+Vendor approval view:
+
+| view | data | type | position |
+| --- | --- | --- | --- |
+| `取引先 事業承認キュー` | `slice_vendor_business_queue` | Deck | Primary |
+
+Use the same `business_approver` / `admin` expression as the slice for the view Show-if.
 
 Audit view:
 
@@ -364,6 +393,32 @@ current_role = ""
 approved_at = NOW()
 updated_at = NOW()
 ```
+
+### Vendor approve action
+
+Action name: `取引先を事業承認`
+
+Set:
+
+```text
+approval_status = "approved"
+approved_by = USEREMAIL()
+approved_at = TEXT(NOW())
+```
+
+Availability condition:
+
+```appsheet
+AND(
+  [approval_status] = "business_approval_pending",
+  OR(
+    LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "business_approver",
+    LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "admin"
+  )
+)
+```
+
+`is_active` becomes true from its App formula after approval.
 
 ### Payment finance approve
 
