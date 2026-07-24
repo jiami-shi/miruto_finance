@@ -25,6 +25,11 @@
 - Verification completed: modified Apps Script files parse successfully, migration log
   reported `db_requests.is_recurring_budget added/backfilled: 32`, the mobile budget form
   shows the new toggle first with default `N`, and AppSheet reports no errors.
+- Slack mention policy was refined after deployment: budget/payment messages mention the
+  requester only when `db_users.slack_user_id` exists (otherwise they show email/name),
+  and also mention the current business/finance approver. Executive approval uses the
+  non-notifying text `@.ninomiya` instead of a real Slack mention. AppSheet template
+  validation finished with `No issues found`.
 
 **2026-07-22 budget payment alert configuration:**
 - New AppSheet-first alert plan is documented in
