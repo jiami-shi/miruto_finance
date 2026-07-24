@@ -239,7 +239,7 @@ Configure this before `db_approval_events`.
 | `request_id` | Ref -> `db_requests` | off | off | on | on | on | empty | empty |
 | `payment_no` | Text | off | on | off | off | on | empty | empty |
 | `payment_title` | Text | off | off | on | on | on | empty | empty |
-| `requester_name` | Text | off | off | on | off | off | empty | empty |
+| `requester_name` | Email | off | off | on | off | on | empty | `USEREMAIL()` |
 | `payment_method` | Enum | off | off | on | on | on | empty | empty |
 | `vendor_name` | Enum (base Text) | off | off | on | on | on | empty | `[request_id].[vendor_name]` |
 | `source_payment_status` | Text | off | off | off | off | off | empty | empty |

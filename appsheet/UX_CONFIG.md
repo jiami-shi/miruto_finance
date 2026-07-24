@@ -232,10 +232,12 @@ Create an action:
 | --- | --- |
 | Action name | `証憑を開く` |
 | For a record of this table | `db_payments` |
-| Do this | `External: go to a website` |
-| Target | `[evidence_url]` |
-| Only if this condition is true | `ISNOTBLANK([evidence_url])` |
+| Do this | `External: open a file` |
+| File | `[evidence_file]` |
+| Only if this condition is true | `ISNOTBLANK([evidence_file])` |
 | Position | Prominent |
+
+Keep `evidence_url` as the clickable fallback for legacy URL-only rows.
 
 Add virtual column `evidence_preview_url`:
 

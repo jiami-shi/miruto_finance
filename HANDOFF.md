@@ -30,6 +30,12 @@
   and also mention the current business/finance approver. Executive approval uses the
   non-notifying text `@.ninomiya` instead of a real Slack mention. AppSheet template
   validation finished with `No issues found`.
+- Payment requester capture now stores the creator email: the legacy physical column
+  `db_payments.requester_name` is type `Email`, has Initial value `USEREMAIL()`, and is
+  read-only/required. Payment Slack resolves the requester mention from that email.
+- The custom `証憑を開く` payment action now uses native `External: open a file` with
+  `[evidence_file]`, is Prominent, and appears when the uploaded file is nonblank. Legacy
+  `evidence_url` rows keep their normal clickable URL. AppSheet reports `No issues found`.
 
 **2026-07-22 budget payment alert configuration:**
 - New AppSheet-first alert plan is documented in
