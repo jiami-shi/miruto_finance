@@ -2,6 +2,28 @@
 
 ## Current State
 
+**2026-07-24 notification, vendor, and HD budget entry completion:**
+- Budget Slack automation now runs only when a request enters
+  `business_approval_pending` or `executive_approval_pending`. Payment Slack automation
+  now runs only when a payment enters `finance_check_pending`,
+  `exception_business_approval_pending`, or
+  `exception_executive_approval_pending`. Final approved states were removed from these
+  bots because their templates do not represent approval-complete messages.
+- Added enabled vendor automation `notify_vendor_status` on `db_vendors`. A new pending
+  vendor mentions the requester and business approver. After business approval it
+  notifies the requester and finance reviewer. The message includes vendor name, content,
+  status, and an AppSheet detail link.
+- `月次HD予算を登録` and `カテゴリ予算を追加` are visible to
+  `business_approver`, `finance_reviewer`, and `admin`. No `db_users.role_code` values
+  were changed.
+- Category budget entry is now limited to the four HD categories `development`, `cogs`,
+  `advertising`, and `management`. The form requires the monthly HD budget, category, and
+  amount. `planned_amount`, `actual_amount`, `burn_rate`, and `updated_at` are hidden from
+  the entry form.
+- Verified in AppSheet preview as `yuki_kurihara@reazon.jp` that the monthly HD budget
+  form, category budget form, and vendor business approval queue are all visible.
+  AppSheet saved with `No issues found`.
+
 **2026-07-24 HD budget reservation and vendor approval:**
 - `db_budgets.remaining_amount` is now calculated in Google Sheets by one
   `ARRAYFORMULA` in `I2`. It subtracts approved `db_requests` amounts grouped by
@@ -19,8 +41,9 @@
 - Added action `取引先を事業承認`, slice `slice_vendor_business_queue`, and primary Deck
   view `取引先 事業承認キュー`. Only `business_approver` and `admin` can see or execute
   them. Verified with `yuki_kurihara@reazon.jp` preview without executing the approval.
-- Slack/vendor notifications were intentionally deferred because the webhook is not yet
-  confirmed. AppSheet saved with `No issues found`.
+- Vendor notification automation is now configured as described above. A production
+  Slack delivery test is still required because this implementation did not submit or
+  approve a real vendor row.
 
 **2026-07-24 AppSheet production-entry and notification cleanup:**
 - Enabled Adds/Updates for `db_budgets` and `db_budget_categories`. Added menu Form

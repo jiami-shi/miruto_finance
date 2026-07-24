@@ -149,13 +149,20 @@ Put `role_code` options in `Type details > Values`, not in `App formula`.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `_RowNumber` | Number | off | off | off | off | off | empty | empty |
 | `budget_category_id` | Text | on | off | on | off | on | empty | empty |
-| `budget_id` | Ref -> `db_budgets` | off | on | on | off | on | empty | empty |
-| `budget_category_code` | Enum | off | off | on | off | on | empty | empty |
-| `allocated_amount` | Price | off | off | on | off | on | empty | empty |
-| `planned_amount` | Price | off | off | on | off | on | empty | empty |
-| `actual_amount` | Price | off | off | on | off | on | empty | empty |
-| `burn_rate` | Percent | off | off | on | off | off | empty | empty |
-| `updated_at` | DateTime | off | off | on | off | on | empty | empty |
+| `budget_id` | Ref -> `db_budgets` | off | on | on | on | on | empty | empty |
+| `budget_category_code` | Enum | off | off | on | on | on | empty | empty |
+| `allocated_amount` | Price | off | off | on | on | on | empty | empty |
+| `planned_amount` | Price | off | off | off | off | off | empty | empty |
+| `actual_amount` | Price | off | off | off | off | off | empty | empty |
+| `burn_rate` | Percent | off | off | off | off | off | empty | empty |
+| `updated_at` | DateTime | off | off | off | off | off | empty | `NOW()` |
+
+Use display name `対象月のHD予算` for `budget_id`. Limit
+`budget_category_code` to:
+
+```appsheet
+LIST("development", "cogs", "advertising", "management")
+```
 
 ## `db_requests`
 

@@ -25,19 +25,21 @@ Maintenance Form views:
 
 | view | data | type | position | Show if |
 | --- | --- | --- | --- | --- |
-| `月次HD予算を登録` | `db_budgets` | Form | Menu | finance reviewer or admin |
-| `カテゴリ予算を追加` | `db_budget_categories` | Form | Menu | finance reviewer or admin |
+| `月次HD予算を登録` | `db_budgets` | Form | Menu | business approver, finance reviewer, or admin |
+| `カテゴリ予算を追加` | `db_budget_categories` | Form | Menu | business approver, finance reviewer, or admin |
 | `取引先を追加` | `db_vendors` | Form | Menu | all signed-in applicants |
 
-The finance/admin Show-if expression uses scalar comparisons because `role_code` is an
-AppSheet `Enum` backed by Text:
+The HD budget maintenance Show-if expression uses the scalar `role_code` value:
 
 ```appsheet
-OR(
-  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "finance_reviewer",
-  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "admin"
+IN(
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code"),
+  LIST("business_approver", "finance_reviewer", "admin")
 )
 ```
+
+The category budget form is intentionally narrow: select the monthly HD budget, select
+one of the four HD categories, and enter its budget amount. Add one row per category.
 
 Do not use `IN(role, LOOKUP(...role_code...))`; the second argument is Text, not a list.
 

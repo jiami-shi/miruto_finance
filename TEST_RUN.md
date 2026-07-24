@@ -1,5 +1,27 @@
 # Test Run
 
+## 2026-07-24 notification and HD budget entry completion
+
+Status: PASS for AppSheet configuration and non-mutating role preview. Real Slack delivery
+remains pending.
+
+- Budget notification condition contains only `business_approval_pending` and
+  `executive_approval_pending`.
+- Payment notification condition contains only `finance_check_pending`,
+  `exception_business_approval_pending`, and
+  `exception_executive_approval_pending`.
+- Vendor bot `notify_vendor_status` is enabled for `business_approval_pending` and
+  `approved`. Its pending message targets the requester and business approver; its
+  approved message targets the requester and finance reviewer.
+- Preview as `yuki_kurihara@reazon.jp` showed `月次HD予算を登録`,
+  `カテゴリ予算を追加`, and `取引先 事業承認キュー`.
+- Category budget input accepts only `development`, `cogs`, `advertising`, and
+  `management`. Monthly HD budget, category, and amount are required; system-maintained
+  fields are hidden.
+- AppSheet validation result after save: `No issues found`.
+- No production row was added or approved, so Slack mention/delivery acceptance must be
+  checked during the user's end-to-end test.
+
 ## 2026-07-24 HD budget reservation and vendor approval
 
 Status: PASS for configuration and non-mutating AppSheet preview.
@@ -15,7 +37,7 @@ Status: PASS for configuration and non-mutating AppSheet preview.
 - Preview as `yuki_kurihara@reazon.jp` showed pending vendor `sa` and action
   `取引先を事業承認`. The action was not executed, preserving the user's test row.
 - AppSheet validation result: `No issues found`.
-- Slack notification acceptance was deferred until the webhook is confirmed.
+- Vendor Slack automation is configured; live delivery acceptance remains pending.
 
 ## 2026-07-24 budget payment alert build
 
