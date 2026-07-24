@@ -2,6 +2,27 @@
 
 ## Current State
 
+**2026-07-24 payment budget guard, evidence access, and Slack amount fixes:**
+- `db_requests.budget_id` remains required. `db_payments.request_id` is now required and
+  only accepts an approved, currently valid request owned by the signed-in user when that
+  request has a nonblank HD budget. A budget request without an HD budget therefore cannot
+  be selected for a new payment.
+- The legacy `db_payments.requester_name` column is displayed as `申請者`, stores an email,
+  defaults from `[request_id].[requester_email]`, and is read-only. Existing test payment
+  `pay-20260724-001` was corrected from the role label `経理確認者` to
+  `jiamin_shi@reazon.jp`.
+- Removed the manually prefixed yen sign from Price values in the budget/payment Slack
+  templates. `request_approved_amount` and `request_remaining_amount` now use the `¥`
+  currency symbol, so Slack no longer renders `¥¥` or `¥$`.
+- Payment Slack now shows the requester email from the linked request, calculates the
+  post-payment remaining amount, and emits `異常理由` only when
+  `[has_payment_exception]` is true.
+- `Open File (evidence_file)` remains the single evidence action, is now `Primary`, and is
+  displayed as `証憑を開く`. PDF evidence opens in Drive; payment detail views do not use
+  `evidence_image` as a main image because PDFs cannot render in that image slot.
+- AppSheet saved successfully and the editor reported `No issues found`. No Slack bot was
+  manually executed during verification.
+
 **2026-07-24 budget form, period, and Slack approval-link fixes:**
 - `db_budgets.period` is now an AppSheet `Date` named `予算対象月`. The prior
   `1109640:00:00` display was the Google Sheets date serial being interpreted as

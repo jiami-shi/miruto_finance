@@ -239,7 +239,7 @@ Configure this before `db_approval_events`.
 | `request_id` | Ref -> `db_requests` | off | off | on | on | on | empty | empty |
 | `payment_no` | Text | off | on | off | off | on | empty | empty |
 | `payment_title` | Text | off | off | on | on | on | empty | empty |
-| `requester_name` | Email | off | off | on | off | on | empty | `USEREMAIL()` |
+| `requester_name` | Email | off | off | on | off | on | empty | `[request_id].[requester_email]` |
 | `payment_method` | Enum | off | off | on | on | on | empty | empty |
 | `vendor_name` | Enum (base Text) | off | off | on | on | on | empty | `[request_id].[vendor_name]` |
 | `source_payment_status` | Text | off | off | off | off | off | empty | empty |
@@ -259,6 +259,24 @@ Configure this before `db_approval_events`.
 | `updated_at` | DateTime | off | off | off | off | on | empty | `NOW()` |
 | `evidence_file` | File | off | off | on | on | off | empty | empty |
 | `evidence_image` | Image | off | off | on | on | off | empty | empty |
+
+`db_payments.request_id` Valid If:
+
+```appsheet
+FILTER(
+  "db_requests",
+  AND(
+    [budget_request_status] = "approved",
+    ISNOTBLANK([budget_id]),
+    [valid_from] <= TODAY(),
+    [valid_to] >= TODAY(),
+    [requester_email] = USEREMAIL()
+  )
+)
+```
+
+This is the payment intake guard: an approved request without an HD budget is not a
+selectable payment source. Keep `request_id` required and `requester_name` read-only.
 
 Payment method values:
 
@@ -295,6 +313,9 @@ Do not add editable `cost_category` to `db_payments`. If it already exists, set 
 | `request_remaining_amount` | Price | `[request_id].[approved_amount_tax_excluded] - SUM(SELECT(db_payments[payment_amount_tax_excluded], AND([request_id] = [_THISROW].[request_id], [payment_id] <> [_THISROW].[payment_id], IN([status_code], {"finance_check_pending", "exception_business_approval_pending", "exception_executive_approval_pending", "payment_approved"}))))` |
 | `has_payment_exception` | Yes/No | `OR([payment_amount_tax_excluded] > [request_remaining_amount], [scheduled_payment_date] < [request_id].[valid_from], [scheduled_payment_date] > [request_id].[valid_to])` |
 | `exception_reason` | LongText | `IFS([payment_amount_tax_excluded] > [request_remaining_amount], "予算申請の残額を超過", OR([scheduled_payment_date] < [request_id].[valid_from], [scheduled_payment_date] > [request_id].[valid_to]), "予算の有効期間外")` |
+
+Set the currency symbol of `request_approved_amount` and `request_remaining_amount` to
+`¥`. Set `exception_reason` Show If to `[has_payment_exception]`.
 
 Keep category burn-rate formula simple in AppSheet. Use Apps Script for exact category balance if the expression becomes slow.
 

@@ -227,3 +227,30 @@ Still true:
 - Import functions remain disabled until source category mapping is validated.
 - Old `db_approval_events` rows may have blank `actor_role` / `action`; do not backfill them.
 - New approval events must populate `actor_role`, `action`, `from_status`, and `to_status`.
+
+## 2026-07-24 budget-backed payment and evidence UX fix
+
+Validated in the live AppSheet editor:
+
+- `db_requests.budget_id` is required.
+- `db_payments.request_id` is required and filters to approved, active, current-user
+  requests with `ISNOTBLANK([budget_id])`.
+- `db_payments.requester_name` is an Email displayed as `申請者`, read-only, with initial
+  value `[request_id].[requester_email]`.
+- `request_approved_amount` and `request_remaining_amount` use the `¥` Price symbol.
+- `exception_reason` uses Show If `[has_payment_exception]`.
+- `Open File (evidence_file)` is the single `証憑を開く` Primary action.
+- Budget/payment Slack templates no longer prepend `¥` to Price values. Payment Slack
+  uses the linked request requester email, shows post-payment remaining budget, and hides
+  the exception line for normal payments.
+- The editor saved with `No issues found`.
+
+Validated in the live PoC DB:
+
+- `pay-20260724-001` now stores `jiamin_shi@reazon.jp` instead of `経理確認者` in the legacy
+  `requester_name` email column.
+
+Not executed:
+
+- Slack webhooks were not manually run, to avoid sending a production-channel test message.
+- A new end-to-end payment was not submitted or approved in this configuration session.

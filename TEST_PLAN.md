@@ -197,6 +197,22 @@ Expected:
 - active `recurring_budget` with no payment scheduled for the current month end sends one Slack channel alert on day 5
 - if a current-month-end `payment_draft`, `finance_check_pending`, or `payment_approved` row exists, no alert is sent
 
+### TC-015 Budget-backed payment intake
+
+- a budget request with blank `budget_id` cannot be saved as a new request
+- an approved request with blank `budget_id` is absent from the payment `request_id` picker
+- an approved, active request with a nonblank `budget_id` can be selected
+- the payment requester is the linked request's requester email and is read-only
+
+### TC-016 Payment approval presentation
+
+- Slack Price values show exactly one currency symbol
+- Slack current balance is the balance after the current payment
+- normal payments do not show an empty exception-reason label
+- exceptional payments show `exception_reason`
+- payment detail exposes one `証憑を開く` primary action
+- PDF evidence opens in Drive and no empty main-image block is shown
+
 ## 5. Success Criteria
 
 PoC passes when:

@@ -232,10 +232,15 @@ Configure the system-generated file action:
 | --- | --- |
 | Action | `Open File (evidence_file)` |
 | Display name | `証憑を開く` |
-| Position | Prominent |
+| Position | Primary |
 
 Do not create a second custom file action. Set both system-generated
 `Open Url (evidence_preview_url)` and `Open Url (evidence_url)` actions to `Hide`.
+
+For payment approval detail views, set **Main image** to `None`. An actual image in
+`evidence_image` can render in an AppSheet image slot, but a PDF cannot. The production
+flow is PDF-heavy, so use the single `証憑を開く` primary action for both PDFs and images
+instead of showing empty image blocks.
 
 Add virtual column `evidence_preview_url`:
 
