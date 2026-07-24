@@ -18,6 +18,7 @@ function generateRecurringPaymentDrafts(targetMonth) {
   try {
     const existingIds = {};
     const paymentsByRequest = {};
+    const monthlyBudgets = readObjects_(SHEETS.BUDGETS);
     readObjects_(SHEETS.PAYMENTS).forEach(function (payment) {
       existingIds[String(payment.payment_id)] = true;
       const rid = String(payment.request_id || '');
@@ -30,6 +31,7 @@ function generateRecurringPaymentDrafts(targetMonth) {
       inserted: 0,
       skipped_existing: 0,
       skipped_ineligible: 0,
+      skipped_missing_monthly_budget: 0,
       skipped_no_recurring_template: 0,
     };
 
@@ -50,8 +52,15 @@ function generateRecurringPaymentDrafts(targetMonth) {
         return;
       }
 
+      const monthlyBudgetId = monthlyBudgetId_(monthlyBudgets, month);
+      if (!monthlyBudgetId) {
+        result.skipped_missing_monthly_budget++;
+        return;
+      }
+
       const paymentId = recurringDraftPaymentId_(request.request_id, month.key);
-      if (existingIds[paymentId] || hasPaymentInMonth_(priorPayments, month)) {
+      if (existingIds[paymentId] ||
+          hasPaymentForMonthlyBudget_(priorPayments, monthlyBudgetId, month)) {
         result.skipped_existing++;
         return;
       }
@@ -71,7 +80,7 @@ function generateRecurringPaymentDrafts(targetMonth) {
         memo: '[AUTO] ' + month.key + ' recurring payment draft',
         business_request_no: request.source_no,
         hd_budget_ref: '',
-        budget_id: request.budget_id,
+        budget_id: monthlyBudgetId,
         status_code: 'payment_draft',
         current_role: 'finance_reviewer',
         created_at: now,
@@ -146,6 +155,14 @@ function hasPaymentInMonth_(payments, month) {
   });
 }
 
+function hasPaymentForMonthlyBudget_(payments, budgetId, month) {
+  return payments.some(function (payment) {
+    if (payment.budget_id) return String(payment.budget_id) === String(budgetId);
+    const date = parseSheetDate_(payment.scheduled_payment_date) || parseSheetDate_(payment.created_at);
+    return date && date >= month.start && date <= month.end;
+  });
+}
+
 // Credit card billing dates vary, so its draft date is intentionally blank.
 function recurringScheduledDate_(method, month) {
   if (String(method || '').trim() === 'クレカ払い') return '';
@@ -201,6 +218,22 @@ function recurringDraftPaymentId_(requestId, monthKey) {
   return 'pay_recurring_' + normalizeKey_(requestId) + '_' + monthKey.replace('-', '');
 }
 
+function monthlyBudgetId_(budgets, month) {
+  const matches = budgets.filter(function (budget) {
+    return budgetMonthKey_(budget.period) === month.key && String(budget.budget_id || '');
+  });
+  if (matches.length > 1) throw new Error('Multiple HD budgets found for ' + month.key);
+  return matches.length ? String(matches[0].budget_id) : '';
+}
+
+function budgetMonthKey_(value) {
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM');
+  }
+  const match = String(value || '').trim().match(/^(\d{4})[-/](\d{1,2})/);
+  return match ? match[1] + '-' + ('0' + Number(match[2])).slice(-2) : '';
+}
+
 function testRecurringPaymentDraftHelpers() {
   const july = recurringDraftMonth_('2026-07');
   if (!isMonthInRequestValidity_({ valid_from: '2026-07-15', valid_to: '2026/08/10' }, july)) {
@@ -219,11 +252,36 @@ function testRecurringPaymentDraftHelpers() {
   if (recurringDraftPaymentId_('req_1', '2026-07') === recurringDraftPaymentId_('req_1', '2026-08')) {
     throw new Error('Different months need different draft IDs');
   }
+  if (monthlyBudgetId_([{ budget_id: 'bud_7', period: '2026/07' }], july) !== 'bud_7') {
+    throw new Error('Recurring drafts must use the target month HD budget');
+  }
+  if (monthlyBudgetId_([{ budget_id: 'bud_8', period: '2026-08' }], july) !== '') {
+    throw new Error('A different month HD budget must not match');
+  }
+  try {
+    monthlyBudgetId_([
+      { budget_id: 'bud_7a', period: '2026-07' },
+      { budget_id: 'bud_7b', period: '2026/07' },
+    ], july);
+    throw new Error('Duplicate monthly HD budgets must be rejected');
+  } catch (error) {
+    if (String(error.message).indexOf('Multiple HD budgets found') < 0) throw error;
+  }
   if (!hasPaymentInMonth_([{ scheduled_payment_date: '2026-07-10' }], july)) {
     throw new Error('Payment inside target month must be detected');
   }
   if (hasPaymentInMonth_([{ scheduled_payment_date: '2026-06-30' }], july)) {
     throw new Error('Payment outside target month must not count');
+  }
+  if (!hasPaymentForMonthlyBudget_([
+    { budget_id: 'bud_7', scheduled_payment_date: '2026-08-31' },
+  ], 'bud_7', july)) {
+    throw new Error('Next-month-end payment must deduplicate by its HD budget month');
+  }
+  if (hasPaymentForMonthlyBudget_([
+    { budget_id: 'bud_8', scheduled_payment_date: '2026-07-10' },
+  ], 'bud_7', july)) {
+    throw new Error('A payment linked to another monthly HD budget must not deduplicate');
   }
   if (!latestRecurringPaymentTemplate_([
     { payment_method: 'クレカ払い', scheduled_payment_date: '2026-07-01' },

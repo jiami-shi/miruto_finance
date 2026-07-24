@@ -213,6 +213,20 @@ Expected:
 - payment detail exposes one `証憑を開く` primary action
 - PDF evidence opens in Drive and no empty main-image block is shown
 
+### TC-017 Recurring monthly cap and HD budget linkage
+
+- a recurring request's approved amount is treated as a monthly cap
+- unused capacity from one month is not added to the next month
+- a generated Draft uses the `db_budgets` row whose `period` is the target month
+- `翌月末払い` links to the HD budget for the month before its scheduled payment date
+- `翌月末払い` is deduplicated by monthly `budget_id`, not its later payment-date month
+- two payments in the same month share one cap
+- payments in different months do not reduce each other's monthly remaining amount
+- the recurring request still shows cumulative approved payments across all months
+- a payment with no resolved monthly `budget_id` cannot be submitted
+- missing monthly HD budget skips Draft generation
+- duplicate HD budgets for one month stop generation with an error
+
 ## 5. Success Criteria
 
 PoC passes when:

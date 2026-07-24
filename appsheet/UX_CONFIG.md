@@ -181,6 +181,13 @@ Recommended order for `db_requests` detail:
 19. `next_payment_alert_at`
 20. related approval events inline view
 
+Display `approved_amount_tax_excluded` as `申請金額（定常予算は月額・税抜）`.
+For recurring requests, display:
+
+- `recurring_consumed_amount` as `累計支払額`
+- `recurring_pending_amount` as `本月申請中額`
+- `recurring_remaining_amount` as `本月残額`
+
 Hide technical IDs from normal detail top area:
 
 - `request_id`

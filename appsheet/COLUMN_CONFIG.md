@@ -250,7 +250,7 @@ Configure this before `db_approval_events`.
 | `memo` | LongText | off | off | on | on | off | empty | empty |
 | `business_request_no` | Text | off | off | off | off | off | empty | empty |
 | `hd_budget_ref` | Text | off | off | off | off | off | empty | empty |
-| `budget_id` | Ref -> `db_budgets` | off | off | off | off | off | `[request_id].[budget_id]` | empty |
+| `budget_id` | Ref -> `db_budgets` | off | off | off | off | on | monthly HD budget formula below | empty |
 | `status_code` | Enum | off | off | on | off | on | empty | `payment_submitted` |
 | `current_role` | Enum | off | off | off | off | on | empty | `finance_reviewer` |
 | `action_comment` | LongText | off | off | on | on | off | empty | empty |
@@ -277,6 +277,32 @@ FILTER(
 
 This is the payment intake guard: an approved request without an HD budget is not a
 selectable payment source. Keep `request_id` required and `requester_name` read-only.
+
+`db_payments.budget_id` App formula:
+
+```appsheet
+IF(
+  [request_id].[request_type] = "recurring_budget",
+  ANY(
+    SELECT(
+      db_budgets[budget_id],
+      TEXT([period], "YYYY-MM")
+        = TEXT(
+            IF(
+              [payment_method] = "翌月末払い",
+              EOMONTH([_THISROW].[scheduled_payment_date], -1),
+              [_THISROW].[scheduled_payment_date]
+            ),
+            "YYYY-MM"
+          )
+    )
+  ),
+  [request_id].[budget_id]
+)
+```
+
+Each month has exactly one `db_budgets` row. `翌月末払い` consumes the preceding
+month's HD budget; other methods consume the scheduled payment month.
 
 Payment method values:
 
@@ -310,7 +336,7 @@ Do not add editable `cost_category` to `db_payments`. If it already exists, set 
 | `inherited_budget_category_code` | Text | `[request_id].[budget_category_code]` |
 | `inherited_source_category_label` | Text | `[request_id].[source_category_label]` |
 | `request_approved_amount` | Price | `[request_id].[approved_amount_tax_excluded]` |
-| `request_remaining_amount` | Price | `[request_id].[approved_amount_tax_excluded] - SUM(SELECT(db_payments[payment_amount_tax_excluded], AND([request_id] = [_THISROW].[request_id], [payment_id] <> [_THISROW].[payment_id], IN([status_code], {"finance_check_pending", "exception_business_approval_pending", "exception_executive_approval_pending", "payment_approved"}))))` |
+| `request_remaining_amount` | Price | `[request_id].[approved_amount_tax_excluded] - SUM(SELECT(db_payments[payment_amount_tax_excluded], AND([request_id] = [_THISROW].[request_id], [budget_id] = [_THISROW].[budget_id], [payment_id] <> [_THISROW].[payment_id], IN([status_code], {"finance_check_pending", "exception_business_approval_pending", "exception_executive_approval_pending", "payment_approved"}))))` |
 | `has_payment_exception` | Yes/No | `OR([payment_amount_tax_excluded] > [request_remaining_amount], [scheduled_payment_date] < [request_id].[valid_from], [scheduled_payment_date] > [request_id].[valid_to])` |
 | `exception_reason` | LongText | `IFS([payment_amount_tax_excluded] > [request_remaining_amount], "予算申請の残額を超過", OR([scheduled_payment_date] < [request_id].[valid_from], [scheduled_payment_date] > [request_id].[valid_to]), "予算の有効期間外")` |
 
@@ -345,8 +371,65 @@ non-draft branch preserves the existing payment intake form behavior.
 | column | type | app formula |
 | --- | --- | --- |
 | `recurring_consumed_amount` | Price | `SUM(SELECT(db_payments[payment_amount_tax_excluded], AND([request_id] = [_THISROW].[request_id], [status_code] = "payment_approved")))` |
-| `recurring_pending_amount` | Price | `SUM(SELECT(db_payments[payment_amount_tax_excluded], AND([request_id] = [_THISROW].[request_id], IN([status_code], {"payment_submitted", "finance_check_pending", "exception_business_approval_pending", "exception_executive_approval_pending"}))))` |
-| `recurring_remaining_amount` | Price | `[approved_amount_tax_excluded] - [recurring_consumed_amount] - [recurring_pending_amount]` |
+| `recurring_pending_amount` | Price | current-month pending formula below |
+| `recurring_remaining_amount` | Price | current-month remaining formula below |
+
+Keep `recurring_consumed_amount` as the all-time approved-payment total and display it as
+`累計支払額`.
+
+`recurring_pending_amount`:
+
+```appsheet
+SUM(
+  SELECT(
+    db_payments[payment_amount_tax_excluded],
+    AND(
+      [request_id] = [_THISROW].[request_id],
+      TEXT([budget_id].[period], "YYYY-MM") = TEXT(TODAY(), "YYYY-MM"),
+      IN(
+        [status_code],
+        LIST(
+          "payment_draft",
+          "payment_submitted",
+          "finance_check_pending",
+          "exception_business_approval_pending",
+          "exception_executive_approval_pending"
+        )
+      )
+    )
+  )
+)
+```
+
+Display it as `本月申請中額`.
+
+`recurring_remaining_amount`:
+
+```appsheet
+[approved_amount_tax_excluded]
+- SUM(
+    SELECT(
+      db_payments[payment_amount_tax_excluded],
+      AND(
+        [request_id] = [_THISROW].[request_id],
+        TEXT([budget_id].[period], "YYYY-MM") = TEXT(TODAY(), "YYYY-MM"),
+        IN(
+          [status_code],
+          LIST(
+            "payment_draft",
+            "payment_submitted",
+            "finance_check_pending",
+            "exception_business_approval_pending",
+            "exception_executive_approval_pending",
+            "payment_approved"
+          )
+        )
+      )
+    )
+  )
+```
+
+Display it as `本月残額`. Unused capacity is not carried into another month.
 
 Show these three columns only for recurring budgets:
 

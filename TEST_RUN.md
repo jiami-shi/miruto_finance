@@ -254,3 +254,26 @@ Not executed:
 
 - Slack webhooks were not manually run, to avoid sending a production-channel test message.
 - A new end-to-end payment was not submitted or approved in this configuration session.
+
+## 2026-07-24 recurring monthly-cap linkage
+
+Validated:
+
+- `db_budgets.period` contains one HD budget per month in the live PoC DB.
+- `generateRecurringPaymentDrafts()` resolves and writes the target month's HD budget.
+- The existing GAS helper self-check returns `ok`, including month matching, missing-month,
+  duplicate-month, and next-month-end deduplication assertions.
+- `clasp push -f` pushed all 13 Apps Script files to the bound project.
+- `db_payments.budget_id` derives the recurring HD budget from the scheduled-payment month;
+  `翌月末払い` uses the preceding month, and the computed field is required.
+- `request_remaining_amount` is scoped by both `request_id` and `budget_id`.
+- Recurring request detail keeps cumulative approved payments and calculates pending and
+  remaining amounts for the current month only.
+- Budget form and Slack wording identify recurring amounts as monthly.
+- AppSheet saved with `No issues found`.
+
+Not executed:
+
+- `clasp run testRecurringPaymentDraftHelpers` is unavailable because the bound Apps Script
+  is not exposed through the Execution API.
+- No live recurring Draft was generated during this change.

@@ -2,6 +2,30 @@
 
 ## Current State
 
+**2026-07-24 recurring budgets use a monthly cap and monthly HD budget:**
+- For `recurring_budget`, `approved_amount_tax_excluded` is now the approved amount per
+  month. Unused monthly capacity does not carry forward. Individual-budget behavior is
+  unchanged: its approved amount remains the request's total cap.
+- `generateRecurringPaymentDrafts()` now resolves `db_budgets.period` for the target month
+  and writes that month's `budget_id` to the generated payment Draft. A missing monthly HD
+  budget skips the Draft; duplicate HD budgets for one month stop generation rather than
+  linking the wrong budget. Existing-payment detection also uses the monthly `budget_id`,
+  so a July `翌月末払い` scheduled for August cannot create a second July Draft.
+- `db_payments.budget_id` uses the same rule for AppSheet-created payments. For
+  `翌月末払い`, the HD budget month is the month before the scheduled payment date; other
+  methods use the scheduled payment month. Individual payments inherit the request's
+  original `budget_id`. The computed payment `budget_id` is required, so an unmatched
+  month cannot be submitted.
+- Payment available balance is now scoped by `request_id + budget_id`, so recurring
+  payments share one monthly cap but payments from other months do not consume it.
+- Recurring request details show cumulative approved payments, current-month pending
+  amount, and current-month remaining amount. Form and Slack labels explicitly state that
+  recurring-budget amounts are monthly.
+- AppSheet saved with `No issues found`; `clasp push -f` pushed all 13 Apps Script files.
+  The existing helper self-check returned `ok`. `clasp run` is unavailable because this
+  bound script is not exposed through the Execution API, so no live Draft was generated
+  during this change.
+
 **2026-07-24 payment budget guard, evidence access, and Slack amount fixes:**
 - `db_requests.budget_id` remains required. `db_payments.request_id` is now required and
   only accepts an approved, currently valid request owned by the signed-in user when that
