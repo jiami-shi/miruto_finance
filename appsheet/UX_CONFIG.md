@@ -468,7 +468,7 @@ IFS(
 Create two scheduled alert bots:
 
 - approved budget older than 30 days with no linked payment
-- active recurring budget with `翌月末払い` and no current-month payment on day 15
+- active recurring budget with no payment scheduled for the current month end on day 5
 
 Both bots send Slack channel messages and update:
 

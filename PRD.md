@@ -293,7 +293,7 @@ approve / reject / cancel / return / resubmit は必ず `db_approval_events` に
 - 予算カテゴリ消化率が表示され、100% 超過時に warning が出る。
 - 全操作が `db_approval_events` に保存される。
 - 承認済み予算が30日間支払未登録の場合、申請者確認の Slack 通知が作成される。
-- 有効な定常予算で `翌月末払い` の当月支払が未登録の場合、毎月15日に Slack 通知が作成される。
+- 有効な定常予算で当月末予定の支払が未登録の場合、毎月5日に Slack 通知が作成される。
 - Slack 通知が job として記録され、送信結果を追跡できる。
 
 ## 16. Risks

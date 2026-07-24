@@ -194,8 +194,8 @@ Expected:
 
 Expected:
 
-- active `recurring_budget` with `翌月末払い` and no current-month linked payment sends one Slack channel alert on day 15
-- if a current-month `payment_draft`, `finance_check_pending`, or `payment_approved` row exists, no alert is sent
+- active `recurring_budget` with no payment scheduled for the current month end sends one Slack channel alert on day 5
+- if a current-month-end `payment_draft`, `finance_check_pending`, or `payment_approved` row exists, no alert is sent
 
 ## 5. Success Criteria
 

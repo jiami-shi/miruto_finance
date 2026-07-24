@@ -242,8 +242,8 @@ Payment rules:
 
 - AppSheet owns requester-facing payment follow-up alerts.
 - Approved budget requests older than 30 days with no linked payment send a Slack channel alert.
-- Active `recurring_budget` rows with `翌月末払い` and no current-month linked payment send a
-  Slack channel alert on day 15.
+- Active `recurring_budget` rows with no payment scheduled for the current month end send a
+  Slack channel alert on day 5.
 - Requesters can set `payment_intent = no_longer_needed` to stop alerts; this sets payment
   activity to `payment_cancelled` without changing approval state.
 - Physical columns must be added by the sheet owner, then AppSheet schema regenerated.

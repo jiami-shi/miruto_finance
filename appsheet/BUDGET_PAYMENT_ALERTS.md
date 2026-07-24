@@ -170,34 +170,27 @@ Slack body:
 }
 ```
 
-## 5. AppSheet Alert Bot: Active Recurring Budget Missing This Month's Payment
+## 5. AppSheet Alert Bot: Active Recurring Budget Missing Month-End Payment
 
 Create another scheduled Automation bot on `db_requests`.
+
+Schedule it for 09:00 JST on the 5th day of every month.
 
 Run condition:
 
 ```appsheet
 AND(
-  DAY(TODAY()) = 15,
-  [request_type] = "recurring_budget",
+  [is_recurring_budget] = TRUE,
   [budget_request_status] = "approved",
   [payment_intent] <> "no_longer_needed",
   [valid_from] <= TODAY(),
   [valid_to] >= TODAY(),
-  IN(
-    "翌月末払い",
-    SELECT(
-      db_payments[payment_method],
-      [request_id] = [_THISROW].[request_id]
-    )
-  ),
   COUNT(
     SELECT(
       db_payments[payment_id],
       AND(
         [request_id] = [_THISROW].[request_id],
-        YEAR([scheduled_payment_date]) = YEAR(TODAY()),
-        MONTH([scheduled_payment_date]) = MONTH(TODAY()),
+        [scheduled_payment_date] = EOMONTH(TODAY(), 0),
         IN(
           [status_code],
           LIST(
@@ -226,7 +219,7 @@ Process steps:
 
 ```text
 last_payment_alert_at = NOW()
-next_payment_alert_at = DATETIME(EOMONTH(TODAY(), 0) + 15)
+next_payment_alert_at = DATETIME(EOMONTH(TODAY(), 0) + 5)
 ```
 
 Slack body:
@@ -293,5 +286,5 @@ Run this action from bots when:
 - `payment_intent = no_longer_needed` stops both alert bots.
 - A linked `payment_draft`, `finance_check_pending`, or `payment_approved` sets activity to `payment_active`.
 - Approved payment total greater than or equal to approved budget amount sets activity to `fully_paid`.
-- Active recurring budget with `翌月末払い` and no current-month payment sends an alert on the 15th.
-- Active recurring budget with any current-month linked payment does not alert.
+- Active recurring budget with no payment scheduled for the current month end sends an alert on the 5th.
+- Active recurring budget with a current-month-end draft, pending, or approved payment does not alert.

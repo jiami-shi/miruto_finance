@@ -37,25 +37,29 @@
   was deleted. The system `Open File (evidence_file)` action is now Prominent with display
   name `証憑を開く`; both generated URL actions are hidden. AppSheet reports `No issues found`.
 
-**2026-07-22 budget payment alert configuration:**
+**2026-07-24 budget payment alert implementation:**
 - New AppSheet-first alert plan is documented in
   `appsheet/BUDGET_PAYMENT_ALERTS.md`, with linked updates in `COLUMN_CONFIG.md`,
   `UX_CONFIG.md`, `BUILD_CHECKLIST.md`, `PLAN.md`, and `README.md`.
 - The model keeps `budget_request_status` as approval state only. Payment follow-up lives in
   `db_requests.payment_activity_status` and `db_requests.payment_intent`.
-- The user added the four physical `db_requests` columns and regenerated schema. Chrome/AppSheet
-  inspection confirmed live `db_requests` now has 34 columns and includes:
+- The user added the four physical `db_requests` columns and regenerated schema. The live table
+  includes:
   `payment_activity_status`, `payment_intent`, `last_payment_alert_at`, and
   `next_payment_alert_at`.
-- Chrome grid editing changed the visible type selectors to:
-  `Enum`, `Enum`, `DateTime`, and `DateTime` during the editor session.
-- Remaining AppSheet editor work: confirm/save those types, set enum values/display names,
-  set `payment_intent` Editable_If, create `slice_my_unpaid_budget_requests`, create action
-  `支払実行状況を再計算`, and create the two scheduled Slack alert bots from
-  `appsheet/BUDGET_PAYMENT_ALERTS.md`.
-- Warning: the new AppSheet editor grid is virtualized and did not expose reliable controls for
-  column-level expressions through Chrome automation. Do not assume alert setup is complete
-  until TC-012 through TC-014 pass.
+- Configured the enum/editability rules, `slice_my_unpaid_budget_requests`, menu view
+  `未支払予算申請`, and hidden action `支払実行状況を再計算`.
+- Two data-change bots invoke the action when a request becomes approved / changes payment
+  intent, or when a linked payment is added or changes request, amount, or status.
+- Created two enabled scheduled Slack bots using the existing secret webhook: daily at 09:00
+  JST for approved requests older than 30 days with no linked payment, and monthly at 09:00
+  JST on the 5th for active recurring budgets with no payment scheduled for the current
+  month end.
+- Both bots update `last_payment_alert_at`; the daily bot sets the next allowed time to 30 days
+  later and the monthly bot sets it to the 5th of the next month.
+- AppSheet saved all changes and reported `No issues found`.
+- Remaining acceptance work: run TC-012 through TC-014 with isolated `[TEST]` rows and confirm
+  the Slack channel receives one message per eligible request without duplicates.
 - Do not use Apps Script for one-time column creation or data cleanup.
 
 **2026-07-17 minimal workflow cleanup + monthly report simplification:**

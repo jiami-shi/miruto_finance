@@ -1,8 +1,24 @@
 # Test Run
 
+## 2026-07-24 budget payment alert build
+
+Status: AppSheet configuration complete; live-message acceptance test pending.
+
+- Configured the four physical alert fields and saved their enum/editability rules.
+- Created `slice_my_unpaid_budget_requests`, menu view `未支払予算申請`, and hidden action
+  `支払実行状況を再計算`.
+- Added request-change and payment-change bots that invoke the status action.
+- Added the daily 09:00 JST no-payment Slack bot with a 30-day repeat guard.
+- Added the monthly 09:00 JST bot on day 5. It checks for an active linked payment whose
+  `scheduled_payment_date` equals `EOMONTH(TODAY(), 0)`.
+- Both bots use the existing AppSheet Slack webhook and update alert timestamps.
+- AppSheet validation result after save: `No issues found`.
+- TC-012 through TC-014 still require isolated `[TEST]` rows and observation of the real Slack
+  destination. No scheduled bot was manually run during configuration.
+
 ## 2026-07-22 budget payment alert precheck
 
-Status: partially configured; still needs AppSheet editor follow-up.
+Status: superseded by the 2026-07-24 build above.
 
 - Initial Chrome/AppSheet editor inspection showed live `db_requests` had 30 columns and was
   blocked on missing physical columns.
@@ -13,10 +29,8 @@ Status: partially configured; still needs AppSheet editor follow-up.
   `next_payment_alert_at`.
 - Chrome grid editing successfully changed the visible column type selectors to:
   `Enum`, `Enum`, `DateTime`, `DateTime` during the session.
-- AppSheet Save remained in a warning state and the virtualized grid made column-level
-  `Editable_If`, enum values, slices, actions, and bots unsafe to complete automatically.
-- Next step: finish the exact settings from `appsheet/BUDGET_PAYMENT_ALERTS.md` in the
-  AppSheet editor, then run TC-012 through TC-014.
+- This precheck identified the remaining column, slice, action, and bot work completed on
+  2026-07-24.
 
 ## 2026-07-10 PoC Setup
 
