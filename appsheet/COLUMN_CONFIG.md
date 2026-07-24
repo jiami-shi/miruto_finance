@@ -128,7 +128,7 @@ Put `role_code` options in `Type details > Values`, not in `App formula`.
 | `budget_ref` | Text | off | on | on | off | on | empty | empty |
 | `budget_name` | Text | off | off | on | off | on | empty | empty |
 | `owner_name` | Text | off | off | on | off | off | empty | empty |
-| `period` | Text | off | off | on | off | off | empty | empty |
+| `period` | Date | off | off | on | off | off | empty | empty |
 | `allocated_amount` | Price | off | off | on | off | on | empty | empty |
 | `used_amount` | Price | off | off | on | off | on | empty | empty |
 | `pending_amount` | Price | off | off | on | off | on | empty | empty |
@@ -160,7 +160,8 @@ Put `role_code` options in `Type details > Values`, not in `App formula`.
 | `request_id` | Text | on | off | off | off | on | empty | `UNIQUEID()` only for AppSheet-created rows |
 | `source_sheet_name` | Text | off | off | off | off | on | empty | empty |
 | `source_no` | Text | off | off | off | off | on | empty | empty |
-| `request_type` | Enum | off | off | on | on | on | empty | empty |
+| `request_type` | Text | off | off | off | off | on | `IF([is_recurring_budget], "recurring_budget", "individual_budget")` | empty |
+| `is_recurring_budget` | Yes/No | off | off | on | on | on | empty | `FALSE` |
 | `request_title` | Text | off | on | on | on | on | empty | empty |
 | `requester_email` | Email | off | off | on | off | off | empty | `USEREMAIL()` for AppSheet-created rows |
 | `requester_name` | Text | off | off | on | on | off | empty | empty |

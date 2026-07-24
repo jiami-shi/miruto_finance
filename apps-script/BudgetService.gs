@@ -3,7 +3,7 @@ const PENDING_STATUSES = [
   'exception_business_approval_pending',
   'exception_executive_approval_pending',
 ];
-const RECURRING_DRAFT_PAYMENT_METHODS = MONTHLY_REPORT_PAYMENT_METHODS.concat(['クレカ払い']);
+const RECURRING_DRAFT_PAYMENT_METHODS = ['振込前払い', '翌月末払い', 'クレカ払い'];
 
 // Auto-draft one recurring payment per active recurring budget for the target month.
 // Rule: budget is recurring_budget + approved + the target month is inside valid_from..valid_to,

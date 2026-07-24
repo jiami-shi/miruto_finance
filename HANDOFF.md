@@ -2,6 +2,30 @@
 
 ## Current State
 
+**2026-07-24 budget form, period, and Slack approval-link fixes:**
+- `db_budgets.period` is now an AppSheet `Date` named `予算対象月`. The prior
+  `1109640:00:00` display was the Google Sheets date serial being interpreted as
+  `Duration`.
+- Added physical `db_requests.is_recurring_budget` (`Yes/No`). The migration
+  `addRecurringBudgetFlag()` ran successfully and backfilled 32 existing rows.
+- The budget form now starts with `定常予算ですか？`, defaults to `N`, and hides the
+  internal `request_type`. `request_type` remains canonical text and is calculated as
+  `IF([is_recurring_budget], "recurring_budget", "individual_budget")`, so existing
+  slices, actions, and GAS rules continue to work.
+- Fixed the existing `予算を承認` action condition from
+  `IN("individual_budget", [request_type])` to
+  `[request_type]="individual_budget"`. AppSheet finished with `No issues found`.
+- Budget and payment Slack webhook tasks now select the approver from `db_users` based
+  on the current status, never fall back to the requester, show the linked budget's
+  approval/usage/pending/remaining amounts, and deep-link to the exact request/payment
+  detail row.
+- Fixed Apps Script startup failure in `BudgetService.gs`: recurring payment methods are
+  now self-contained instead of reading a cross-file `const` during script loading.
+  `clasp push -f` succeeded and the migration completed after this fix.
+- Verification completed: modified Apps Script files parse successfully, migration log
+  reported `db_requests.is_recurring_budget added/backfilled: 32`, the mobile budget form
+  shows the new toggle first with default `N`, and AppSheet reports no errors.
+
 **2026-07-22 budget payment alert configuration:**
 - New AppSheet-first alert plan is documented in
   `appsheet/BUDGET_PAYMENT_ALERTS.md`, with linked updates in `COLUMN_CONFIG.md`,

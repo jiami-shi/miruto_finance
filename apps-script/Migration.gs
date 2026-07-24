@@ -35,6 +35,32 @@ function rerunPaymentAndDerivedMigration() {
   Logger.log('Payment/derived migration complete.');
 }
 
+function addRecurringBudgetFlag() {
+  const sheet = getSheet_(SHEETS.REQUESTS);
+  const values = sheet.getDataRange().getValues();
+  if (!values.length) return;
+
+  const headers = values[0];
+  var typeIndex = headers.indexOf('request_type');
+  var flagIndex = headers.indexOf('is_recurring_budget');
+  if (typeIndex < 0) throw new Error('db_requests.request_type is missing.');
+
+  if (flagIndex < 0) {
+    flagIndex = headers.length;
+    sheet.getRange(1, flagIndex + 1).setValue('is_recurring_budget');
+  }
+
+  if (values.length > 1) {
+    const flags = values.slice(1).map(function (row) {
+      const value = String(row[typeIndex] || '').toLowerCase();
+      return [value === 'recurring_budget' || value === '定常' || value === 'true'];
+    });
+    sheet.getRange(2, flagIndex + 1, flags.length, 1).setValues(flags);
+  }
+
+  Logger.log('db_requests.is_recurring_budget added/backfilled: ' + Math.max(values.length - 1, 0));
+}
+
 function readRawRows_(sheetName) {
   const sheet = getSheet_(sheetName);
   const values = sheet.getDataRange().getValues();
@@ -100,6 +126,7 @@ function migrateRequests_() {
       source_sheet_name: get(row, 'source_sheet_name'),
       source_no: get(row, 'source_no'),
       request_type: requestType,
+      is_recurring_budget: requestType === 'recurring_budget',
       request_title: get(row, 'request_title'),
       requester_email: get(row, 'requester_email'),
       requester_name: get(row, 'requester_name'),

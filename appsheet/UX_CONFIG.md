@@ -161,7 +161,7 @@ Deck fields:
 Recommended order for `db_requests` detail:
 
 1. `request_title`
-2. `request_type`
+2. `is_recurring_budget` (display name: `定常予算ですか？`, default: `FALSE`)
 3. `budget_request_status`
 4. `approved_amount_tax_excluded`
 5. `source_category_label`

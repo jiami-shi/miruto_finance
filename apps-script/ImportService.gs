@@ -114,6 +114,7 @@ function mapBudgetRequest_(row, requestType, existing) {
     source_sheet_name: requestType === 'recurring_budget' ? SOURCE_TABS.RECURRING_REQUESTS : SOURCE_TABS.INDIVIDUAL_REQUESTS,
     source_no: sourceNo,
     request_type: requestType,
+    is_recurring_budget: requestType === 'recurring_budget',
     request_title: first_(row, ['タイトル']),
     comment: first_(row, ['コメント欄', 'コメント']),
     requester_email: current.requester_email || '',

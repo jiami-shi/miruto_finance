@@ -29,6 +29,7 @@ const SCHEMA = {
     'payment_intent',
     'last_payment_alert_at',
     'next_payment_alert_at',
+    'is_recurring_budget',
   ],
   PAYMENTS: [
     'payment_id',
