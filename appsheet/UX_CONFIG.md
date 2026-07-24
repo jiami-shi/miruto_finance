@@ -10,8 +10,8 @@ In `Data > Tables`:
 | --- | --- | --- | --- | --- |
 | `db_requests` | Updates only | on for requesters/admin | on via actions | off |
 | `db_payments` | Updates only | on for requesters/admin | on via actions | off |
-| `db_budgets` | Read-only | off | off | off |
-| `db_budget_categories` | Read-only | off | off | off |
+| `db_budgets` | Adds and updates | on | on | off |
+| `db_budget_categories` | Adds and updates | on | on | off |
 | `db_approval_events` | Adds only | on | off | off |
 | `db_users` | Read-only | off | off | off |
 | `db_approval_rules` | Read-only | off | off | off |
@@ -19,6 +19,31 @@ In `Data > Tables`:
 | `db_error_log` | Read-only | off | off | off |
 
 Hide generated Add/Edit/Delete actions from normal approvers once explicit actions exist.
+
+Maintenance Form views:
+
+| view | data | type | position | Show if |
+| --- | --- | --- | --- | --- |
+| `月次HD予算を登録` | `db_budgets` | Form | Menu | finance reviewer or admin |
+| `カテゴリ予算を追加` | `db_budget_categories` | Form | Menu | finance reviewer or admin |
+| `取引先を追加` | `db_vendors` | Form | Menu | all signed-in applicants |
+
+The finance/admin Show-if expression uses scalar comparisons because `role_code` is an
+AppSheet `Enum` backed by Text:
+
+```appsheet
+OR(
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "finance_reviewer",
+  LOOKUP(USEREMAIL(), "db_users", "user_email", "role_code") = "admin"
+)
+```
+
+Do not use `IN(role, LOOKUP(...role_code...))`; the second argument is Text, not a list.
+
+Role-less users keep only the normal applicant views (`ホーム`, `未支払予算申請`,
+`予算を申請`, `予算申請履歴`, `支払を登録`, `支払申請履歴`,
+`定常予算 支払ドラフト`) plus `取引先を追加`. Approval queues and operational views
+must have a scalar `role_code` Show-if condition.
 
 ## Slices
 

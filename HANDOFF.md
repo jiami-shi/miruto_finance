@@ -2,6 +2,24 @@
 
 ## Current State
 
+**2026-07-24 AppSheet production-entry and notification cleanup:**
+- Enabled Adds/Updates for `db_budgets` and `db_budget_categories`. Added menu Form
+  views `月次HD予算を登録`, `カテゴリ予算を追加`, and `取引先を追加`.
+- The two budget-maintenance forms are visible only to `finance_reviewer` and `admin`.
+  Vendor creation remains available to ordinary applicants.
+- Restricted approval, audit, exception, notification-job, error-log, budget-balance, and
+  category-consumption views by scalar `db_users.role_code`. Users with no configured role
+  retain only the ordinary request/payment views plus vendor creation.
+- Budget and payment Slack webhook bodies now have stage-specific headings, instructions,
+  and button labels. Business/finance stages mention the active approver from `db_users`;
+  executive stages use the non-notifying text `@.ninomiya`. Requesters are mentioned only
+  when a Slack ID exists, otherwise their email is shown.
+- Relinked the approved request `test 1` (`e58085e3`) to July HD budget `bud_No_63`.
+  Its empty `budget_id`, not the payment picker formula, was why it could not be selected.
+- The user's temporary test role was preserved as `executive_approver`; do not normalize or
+  change test roles based on `display_name`.
+- Saved AppSheet successfully; the editor reports `No issues found`.
+
 **2026-07-24 recurring budgets use a monthly cap and monthly HD budget:**
 - For `recurring_budget`, `approved_amount_tax_excluded` is now the approved amount per
   month. Unused monthly capacity does not carry forward. Individual-budget behavior is

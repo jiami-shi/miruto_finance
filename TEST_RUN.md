@@ -277,3 +277,15 @@ Not executed:
 - `clasp run testRecurringPaymentDraftHelpers` is unavailable because the bound Apps Script
   is not exposed through the Execution API.
 - No live recurring Draft was generated during this change.
+# 2026-07-24 AppSheet entry, role visibility, and Slack templates
+
+- Enabled Adds/Updates for `db_budgets` and `db_budget_categories`.
+- Added `月次HD予算を登録`, `カテゴリ予算を追加`, and `取引先を追加` Form views.
+- Added role-based Show-if formulas to approval and operational views.
+- Updated budget/payment Slack webhook bodies for business, finance, and executive stages.
+- Confirmed AppSheet accepts scalar Text role comparisons and rejects `IN(..., role_code)`.
+- Confirmed `test 1` is `approved` and linked to `bud_No_63`.
+- Confirmed `jiamin_shi@reazon.jp` remains `executive_approver` for the user's current test.
+- Final AppSheet save result: `No issues found`.
+- Slack webhooks were not manually executed; verify mentions and stage text with fresh
+  real-account approval actions.
